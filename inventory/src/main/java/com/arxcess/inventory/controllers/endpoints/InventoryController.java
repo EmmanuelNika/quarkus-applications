@@ -20,16 +20,34 @@ public class InventoryController {
     @Inject
     InventoryService service;
 
-    @Route(path = "/inventory", methods = HttpMethod.POST, produces = "application/json")
+    @Route(path = "/items", methods = HttpMethod.POST, produces = "application/json")
     Uni<Response> createItem(@Body @Valid InventoryItemRequest request) {
 
         return service.createItem(request);
     }
 
-    @Route(path = "/inventory/:id", methods = HttpMethod.GET, produces = "application/json")
+    @Route(path = "/items", methods = HttpMethod.GET, produces = "application/json")
+    Uni<Response> getItems() {
+
+        return service.getItems();
+    }
+
+    @Route(path = "/item/:id", methods = HttpMethod.GET, produces = "application/json")
     Uni<Response> getItem(@NotNull @Param("id") Long id) {
 
         return service.getItem(id);
+    }
+
+    @Route(path = "/item/:id", methods = HttpMethod.PUT, produces = "application/json")
+    Uni<Response> updateItem(@NotNull @Param("id") Long id, @Body @Valid InventoryItemRequest request) {
+
+        return service.updateItem(id, request);
+    }
+
+    @Route(path = "/item/:id", methods = HttpMethod.DELETE, produces = "application/json")
+    Uni<Response> deleteItem(@NotNull @Param("id") Long id) {
+
+        return service.delete(id);
     }
 
 }

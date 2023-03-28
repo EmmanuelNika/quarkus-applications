@@ -15,8 +15,6 @@ public class CustomExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable exception) {
 
-        System.out.println("Mapper...");
-
         List<ErrorMessage> messages = new ArrayList<>();
         ErrorMessage message = new ErrorMessage();
         message.setMessage(exception.getMessage());
