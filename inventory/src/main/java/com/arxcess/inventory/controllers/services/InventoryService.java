@@ -9,8 +9,10 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.net.URI;
 
 @ApplicationScoped
 public class InventoryService {
@@ -22,17 +24,28 @@ public class InventoryService {
 
     public Uni<Response> createItem(InventoryItemRequest request) {
 
-        InventoryItem inventoryItem = new InventoryItem();
-        inventoryItem.name = request.name;
-        inventoryItem.type = request.type;
-        inventoryItem.barcode = request.barcode;
-        inventoryItem.isReturnable = request.isReturnable;
+        return itemRepository.validateRequest(request.name, request.barcode)
+                .onItem()
+                .ifNotNull()
+                .transform(t -> Response.ok()
+                        .status(Status.BAD_REQUEST)
+                        .entity("Item already exists!")
+                        .build())
+                .onItem()
+                .ifNull()
+                .switchTo(() -> {
+                    InventoryItem inventoryItem = new InventoryItem();
+                    inventoryItem.name = request.name;
+                    inventoryItem.type = request.type;
+                    inventoryItem.barcode = request.barcode;
+                    inventoryItem.isReturnable = request.isReturnable;
 
-        return Panache.withTransaction(inventoryItem::persist)
-                .replaceWith(Response.ok()
-                        .status(Status.CREATED)
-                        .entity(inventoryItem)
-                        .build());
+                    return Panache.withTransaction(inventoryItem::persist)
+                            .replaceWith(Response.created(URI.create("/items/" + inventoryItem.id))
+                                    .status(Status.CREATED)
+                                    .entity(inventoryItem)
+                                    .build());
+                });
     }
 
     public Uni<Response> getItems() {
