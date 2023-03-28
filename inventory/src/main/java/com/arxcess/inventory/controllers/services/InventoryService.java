@@ -9,7 +9,6 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -72,22 +71,32 @@ public class InventoryService {
 
     public Uni<Response> updateItem(Long id, InventoryItemRequest request) {
 
-        return Panache.withTransaction(() -> itemRepository.findById(id)
-                        .onItem()
-                        .ifNotNull()
-                        .invoke(inventoryItem -> {
-                            inventoryItem.name = request.name;
-                            inventoryItem.type = request.type;
-                            inventoryItem.barcode = request.barcode;
-                            inventoryItem.isReturnable = request.isReturnable;
-                        }))
+        return itemRepository.validateRequest(id, request.name, request.barcode)
                 .onItem()
                 .ifNotNull()
-                .transform(entity -> Response.ok(entity)
+                .transform(t -> Response.ok()
+                        .status(Status.BAD_REQUEST)
+                        .entity("Item already exists!")
                         .build())
                 .onItem()
                 .ifNull()
-                .continueWith(CustomErrorHandler.notFound(NOT_FOUND));
+                .switchTo(() -> Panache.withTransaction(() -> itemRepository.findById(id)
+                                .onItem()
+                                .ifNotNull()
+                                .invoke(inventoryItem -> {
+                                    inventoryItem.name = request.name;
+                                    inventoryItem.type = request.type;
+                                    inventoryItem.barcode = request.barcode;
+                                    inventoryItem.isReturnable = request.isReturnable;
+                                }))
+                        .onItem()
+                        .ifNotNull()
+                        .transform(entity -> Response.ok(entity)
+                                .build())
+                        .onItem()
+                        .ifNull()
+                        .continueWith(CustomErrorHandler.notFound(NOT_FOUND)));
+
     }
 
     public Uni<Response> delete(Long id) {
