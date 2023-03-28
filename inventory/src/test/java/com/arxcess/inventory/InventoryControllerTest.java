@@ -195,6 +195,36 @@ class InventoryControllerTest {
 
     }
 
+    @Test
+    void testDeleteItem() {
+
+        ObjectNode itemJson = getData();
+
+        ResponsePOJO responsePOJO = given().when()
+                .body(itemJson)
+                .contentType("application/json")
+                .post("/items")
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .body(containsString("\"id\":"), containsString(String.format("\"name\":%s", itemJson.get("name"))))
+                .extract()
+                .as(ResponsePOJO.class);
+
+        JsonNode jsonNode = objectMapper.convertValue(responsePOJO.entity, JsonNode.class);
+
+        ResponsePOJO response = given().when()
+                .contentType("application/json")
+                .delete("/items/" + jsonNode.get("id"))
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .extract()
+                .as(ResponsePOJO.class);
+
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.status);
+
+    }
+
+
     public List<ObjectNode> getDataList() {
 
         List<ObjectNode> res = new ArrayList<>();
