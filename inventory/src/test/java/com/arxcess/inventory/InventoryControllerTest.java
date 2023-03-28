@@ -176,7 +176,7 @@ class InventoryControllerTest {
         savedItemJson.put("barcode", faker.code()
                 .ean8());
         savedItemJson.put("type", "ITEM");
-        savedItemJson.put("isReturnable", false);
+        savedItemJson.put("isReturnable", true);
 
         ResponsePOJO updateResponse = given().when()
                 .body(savedItemJson)
