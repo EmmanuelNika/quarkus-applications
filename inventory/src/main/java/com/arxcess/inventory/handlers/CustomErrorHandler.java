@@ -1,6 +1,5 @@
 package com.arxcess.inventory.handlers;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.time.LocalDateTime;

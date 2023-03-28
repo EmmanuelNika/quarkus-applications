@@ -9,28 +9,49 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.net.URI;
 
 @ApplicationScoped
 public class InventoryService {
+
+    private static final String NOT_FOUND = "Item not found!";
 
     @Inject
     InventoryItemRepository itemRepository;
 
     public Uni<Response> createItem(InventoryItemRequest request) {
 
-        InventoryItem inventoryItem = new InventoryItem();
-        inventoryItem.name = request.name;
-        inventoryItem.type = request.type;
-        inventoryItem.barcode = request.barcode;
-        inventoryItem.isReturnable = request.isReturnable;
+        return itemRepository.validateRequest(request.name, request.barcode)
+                .onItem()
+                .ifNotNull()
+                .transform(t -> Response.ok()
+                        .status(Status.BAD_REQUEST)
+                        .entity("Item already exists!")
+                        .build())
+                .onItem()
+                .ifNull()
+                .switchTo(() -> {
+                    InventoryItem inventoryItem = new InventoryItem();
+                    inventoryItem.name = request.name;
+                    inventoryItem.type = request.type;
+                    inventoryItem.barcode = request.barcode;
+                    inventoryItem.isReturnable = request.isReturnable;
 
-        return Panache.withTransaction(inventoryItem::persist)
-                .replaceWith(Response.ok()
-                        .status(Status.CREATED)
-                        .entity(inventoryItem)
+                    return Panache.withTransaction(inventoryItem::persist)
+                            .replaceWith(Response.created(URI.create("/items/" + inventoryItem.id))
+                                    .status(Status.CREATED)
+                                    .entity(inventoryItem)
+                                    .build());
+                });
+    }
+
+    public Uni<Response> getItems() {
+
+        return itemRepository.listAll()
+                .onItem()
+                .transform(inventoryItems -> Response.ok(inventoryItems)
                         .build());
     }
 
@@ -45,22 +66,45 @@ public class InventoryService {
                 .ifNull()
                 .fail()
                 .onFailure()
-                .recoverWithItem(CustomErrorHandler.notFound("Item not found"));
+                .recoverWithItem(CustomErrorHandler.notFound(NOT_FOUND));
     }
 
-    public Uni<Response> byId(Long id) {
+    public Uni<Response> updateItem(Long id, InventoryItemRequest request) {
 
-        System.out.println("By id");
-
-        return itemRepository.findById(id)
+        return itemRepository.validateRequest(id, request.name, request.barcode)
+                .onItem()
+                .ifNotNull()
+                .transform(t -> Response.ok()
+                        .status(Status.BAD_REQUEST)
+                        .entity("Item already exists!")
+                        .build())
                 .onItem()
                 .ifNull()
-                .failWith(new NotFoundException("Item not found"))
-                .onFailure()
-                .transform(throwable -> new NotFoundException(throwable.getMessage()))
-                .replaceWith(Response
-                        .status(Status.BAD_GATEWAY)
-                        .build());
+                .switchTo(() -> Panache.withTransaction(() -> itemRepository.findById(id)
+                                .onItem()
+                                .ifNotNull()
+                                .invoke(inventoryItem -> {
+                                    inventoryItem.name = request.name;
+                                    inventoryItem.type = request.type;
+                                    inventoryItem.barcode = request.barcode;
+                                    inventoryItem.isReturnable = request.isReturnable;
+                                }))
+                        .onItem()
+                        .ifNotNull()
+                        .transform(entity -> Response.ok(entity)
+                                .build())
+                        .onItem()
+                        .ifNull()
+                        .continueWith(CustomErrorHandler.notFound(NOT_FOUND)));
+
+    }
+
+    public Uni<Response> delete(Long id) {
+
+        return Panache.withTransaction(() -> itemRepository.deleteById(id))
+                .map(deleted -> Boolean.TRUE.equals(deleted) ? Response.ok()
+                        .status(Status.NO_CONTENT)
+                        .build() : CustomErrorHandler.notFound(NOT_FOUND));
     }
 
 }
