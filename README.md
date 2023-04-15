@@ -33,7 +33,8 @@ See [CONTRIBUTING](CONTRIBUTING.md) for how to build these examples.
 
 ## Application List
 
-* [Authorization OIDC](./authorization): Authorization Application.
+* [Keycloak Authorization](./keycloak-authorization): Keycloak Authorized Application.
+* [Okta Authorization](./okta-authorization): Okta Authorized Application.
 * [Inventory](./inventory): Inventory Application.
 
 Have fun, and join the team of contributors!

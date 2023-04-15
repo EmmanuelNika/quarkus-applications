@@ -11,7 +11,8 @@
 
     <modules>
         <module>inventory</module>
-        <module>authorization</module>
+        <module>keycloak-authorization</module>
+        <module>okta-authorization</module>
     </modules>
 
     <properties>

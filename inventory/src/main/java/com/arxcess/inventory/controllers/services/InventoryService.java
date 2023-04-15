@@ -22,6 +22,11 @@ public class InventoryService {
     @Inject
     InventoryItemRepository itemRepository;
 
+    public Uni<Response> getItems() {
+
+        return itemRepository.listAll().onItem().transform(inventoryItems -> Response.ok(inventoryItems).build());
+    }
+
     public Uni<Response> createItem(InventoryItemRequest request) {
 
         return itemRepository.validateRequest(request.name, request.barcode)
@@ -41,7 +46,6 @@ public class InventoryService {
                     inventoryItem.isReturnable = request.isReturnable;
 
                     return Panache.withTransaction(inventoryItem::persist)
-                            .replaceWith(inventoryItem)
                             .ifNoItem()
                             .after(Duration.ofMillis(10000))
                             .fail()
@@ -54,21 +58,12 @@ public class InventoryService {
                 });
     }
 
-    public Uni<Response> getItems() {
-
-        return itemRepository.listAll()
-                .onItem()
-                .transform(inventoryItems -> Response.ok(inventoryItems)
-                        .build());
-    }
-
     public Uni<Response> getItem(Long id) {
 
         return itemRepository.findById(id)
                 .onItem()
                 .ifNotNull()
-                .transform(inventoryItem -> Response.ok(inventoryItem)
-                        .build())
+                .transform(inventoryItem -> Response.ok(inventoryItem).build())
                 .onItem()
                 .ifNull()
                 .fail()
@@ -98,8 +93,7 @@ public class InventoryService {
                                 }))
                         .onItem()
                         .ifNotNull()
-                        .transform(entity -> Response.ok(entity)
-                                .build())
+                        .transform(entity -> Response.ok(entity).build())
                         .onItem()
                         .ifNull()
                         .continueWith(CustomErrorHandler.notFound(NOT_FOUND)));

@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>com.arxcess.authorization</groupId>
-    <artifactId>authorization</artifactId>
+    <artifactId>okta-authorization</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

@@ -1,14 +1,9 @@
-# Hibernate Reactive with Panache and Reactive Routes
+# Security Keycloak Authorization
 
-This is a minimal CRUD service exposing a couple of endpoints over REST so you can play with it from an application
-of your own preference.
+This project seeks to provide a simple guide on using multi-tenant for SaaS applications.
 
-While the code is surprisingly simple, under the hood this is using:
-
-- Reactive routes to expose the REST endpoints
-- Hibernate Reactive with Panache to perform the CRUD operations on the database
-- A MySQL database; see below to run one via Docker
-- ArC, the CDI inspired dependency injection tool with zero overhead
+An in-depth approach that uses one of the opinionated approaches for "multi-tenant Keycloak" can be
+found [here](https://github.com/p2-inc/keycloak-orgs). You are advised to read through.
 
 ## Requirements
 
@@ -103,11 +98,26 @@ that's a whole lot of stuff: from the bytecode enhancements that Panache
 applies to your entities, to the lower level essential components such as the PostgreSQL JDBC driver, the Undertow
 webserver.
 
+### Starting and Configuring the Keycloak Server
+
+Do not start the Keycloak server when you run the application in a dev
+mode. [Dev Services for Keycloak](https://quarkus.io/guides/security-keycloak-authorization#keycloak-dev-mode) will
+launch a container.
+
+To start a Keycloak Server in production, you can run the following command:
+> docker run --name keycloak -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin -p 8543:8443 -v "$(pwd)"
+> /config/cert.pem:/etc/cert.pem -v "$(pwd)"/config/key.pem:/etc/key.pem quay.io/keycloak/keycloak start
+> --hostname-strict=false --https-certificate-file=/etc/cert.pem --https-certificate-key-file=/etc/key.pem
+
+**NB:** Visit [this site](https://www.suse.com/support/kb/doc/?id=000018152) to create a .pem file for SSL
+Certificate
+installations
+
 ## See the demo in your browser
 
 Navigate to:
 
-<http://localhost:8081/inventory-api/index.html>
+<http://localhost:8080/index.html>
 
 Have fun, and join the team of contributors!
 
