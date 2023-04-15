@@ -1,6 +1,6 @@
 # Contributing guide
 
-**Want to contribute to quickstarts? That's awesome!**
+**Want to contribute to quarkus-applications? That's awesome!**
 
 We try to make it easy, and all contributions, even the smaller ones, are more than welcome.
 This includes bug reports, fixes, documentation, new quickstarts...

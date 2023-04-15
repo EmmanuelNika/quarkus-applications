@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
+import java.time.Duration;
 
 @ApplicationScoped
 public class InventoryService {
@@ -40,6 +41,12 @@ public class InventoryService {
                     inventoryItem.isReturnable = request.isReturnable;
 
                     return Panache.withTransaction(inventoryItem::persist)
+                            .replaceWith(inventoryItem)
+                            .ifNoItem()
+                            .after(Duration.ofMillis(10000))
+                            .fail()
+                            .onFailure()
+                            .transform(IllegalStateException::new)
                             .replaceWith(Response.created(URI.create("/items/" + inventoryItem.id))
                                     .status(Status.CREATED)
                                     .entity(inventoryItem)
