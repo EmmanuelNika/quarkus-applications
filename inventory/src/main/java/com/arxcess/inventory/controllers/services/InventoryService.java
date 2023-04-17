@@ -22,11 +22,6 @@ public class InventoryService {
     @Inject
     InventoryItemRepository itemRepository;
 
-    public Uni<Response> getItems() {
-
-        return itemRepository.listAll().onItem().transform(inventoryItems -> Response.ok(inventoryItems).build());
-    }
-
     public Uni<Response> createItem(InventoryItemRequest request) {
 
         return itemRepository.validateRequest(request.name, request.barcode)
@@ -56,6 +51,11 @@ public class InventoryService {
                                     .entity(inventoryItem)
                                     .build());
                 });
+    }
+
+    public Uni<Response> getItems() {
+
+        return itemRepository.listAll().onItem().transform(inventoryItems -> Response.ok(inventoryItems).build());
     }
 
     public Uni<Response> getItem(Long id) {
