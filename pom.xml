@@ -13,7 +13,7 @@
         <module>inventory-reactive</module>
         <module>keycloak-authorization</module>
         <module>okta-authorization</module>
-        <module>inventory-imperative</module>
+        <module>inventory-resteasy-reactive</module>
     </modules>
 
     <properties>

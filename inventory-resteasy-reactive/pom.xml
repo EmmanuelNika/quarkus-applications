@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>com.arxcess.inventory</groupId>
-    <artifactId>inventory-imperative</artifactId>
+    <artifactId>inventory-resteasy-reactive</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

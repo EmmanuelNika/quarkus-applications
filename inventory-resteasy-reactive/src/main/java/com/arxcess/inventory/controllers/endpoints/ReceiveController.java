@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-@Path("receive")
+@Path("receives")
 @Produces("application/json")
 @Consumes("application/json")
 @Tag(name = "Receive")
