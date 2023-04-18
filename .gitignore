@@ -1,3 +1,6 @@
+#Secret files
+*.pem
+
 # Eclipse
 .project
 .classpath
