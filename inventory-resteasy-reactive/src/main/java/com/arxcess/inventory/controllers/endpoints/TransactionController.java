@@ -1,7 +1,8 @@
 package com.arxcess.inventory.controllers.endpoints;
 
-import com.arxcess.inventory.controllers.services.ReceiveService;
+import com.arxcess.inventory.controllers.services.TransactionService;
 import com.arxcess.inventory.controllers.services.payloads.ReceiveRequest;
+import com.arxcess.inventory.controllers.services.payloads.SaleRequest;
 import com.arxcess.inventory.domains.InventoryItem;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -17,21 +18,31 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-@Path("receives")
+@Path("transactions")
 @Produces("application/json")
 @Consumes("application/json")
-@Tag(name = "Receive")
-public class ReceiveController {
+@Tag(name = "Transaction")
+public class TransactionController {
 
     @Inject
-    ReceiveService service;
+    TransactionService service;
 
     @POST
+    @Path("receive")
     @Transactional
     @APIResponse(responseCode = "201", description = "Save an inventory item receive", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = InventoryItem.class)))
-    public Response create(@Valid ReceiveRequest request) {
+    public Response createReceive(@Valid ReceiveRequest request) {
         return service.createReceive(request);
+    }
+
+    @POST
+    @Path("sale")
+    @Transactional
+    @APIResponse(responseCode = "201", description = "Save an inventory item sale", content = @Content(mediaType =
+            MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = InventoryItem.class)))
+    public Response createSale(@Valid SaleRequest request) {
+        return service.createSale(request);
     }
 
     @GET

@@ -22,6 +22,9 @@ public class InventoryActivity extends PanacheEntity {
     public BigDecimal quantity;
 
     @Column(nullable = false, scale = 6)
+    public BigDecimal unitPrice;
+
+    @Column(nullable = false, scale = 6)
     public BigDecimal costPrice;
 
     @Column(scale = 6)
