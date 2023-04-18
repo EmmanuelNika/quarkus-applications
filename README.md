@@ -35,6 +35,9 @@ See [CONTRIBUTING](CONTRIBUTING.md) for how to build these examples.
 
 * [Keycloak Authorization](./keycloak-authorization): Keycloak Authorized Application.
 * [Okta Authorization](./okta-authorization): Okta Authorized Application.
-* [Inventory](./inventory): Inventory Application.
+* [Inventory RESTEasy Reactive](./inventory-imperative): Inventory RESTEasy Reactive Application. Exposing a CRUD service over REST using Panache
+  to connect to a MYSQL database.
+* [Inventory Reactive Routes](./inventory-reactive): Inventory Reactive Routes Application. Exposing a CRUD service over Reactive Routes using Panache
+  to connect to a MYSQL database.
 
 Have fun, and join the team of contributors!

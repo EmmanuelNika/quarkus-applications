@@ -3,6 +3,7 @@ package com.arxcess.inventory.controllers.endpoints;
 import com.arxcess.inventory.controllers.services.InventoryReceiveService;
 import com.arxcess.inventory.controllers.services.payloads.InventoryItemRequest;
 import com.arxcess.inventory.controllers.services.payloads.ReceiveRequest;
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.quarkus.vertx.web.Body;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;

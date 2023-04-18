@@ -7,6 +7,7 @@ import com.arxcess.inventory.controllers.services.statics.ActivityTransactionTyp
 import com.arxcess.inventory.domains.BatchInfo;
 import com.arxcess.inventory.domains.InventoryActivity;
 import com.arxcess.inventory.domains.InventoryItem;
+import com.arxcess.inventory.domains.repository.BatchInfoRepository;
 import com.arxcess.inventory.domains.repository.InventoryActivityRepository;
 import com.arxcess.inventory.domains.repository.InventoryItemRepository;
 import com.arxcess.inventory.handlers.CustomErrorHandler;
@@ -37,6 +38,9 @@ public class InventoryReceiveService {
 
     @Inject
     InventoryActivityRepository activityRepository;
+
+    @Inject
+    BatchInfoRepository batchInfoRepository;
 
     public Uni<Response> getReceives() {
 
@@ -74,6 +78,7 @@ public class InventoryReceiveService {
                 });
 
             } else {
+
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
@@ -82,9 +87,13 @@ public class InventoryReceiveService {
                 inventoryActivity.inventoryItem = inventoryItem;
 
                 BatchInfo batchInfo = new BatchInfo();
+                batchInfo.batchReference = batchInfoRepository.generateBatchReference(request.date);
                 batchInfo.batchNumber = receiveItemRequest.batchInfo.batchNumber;
                 batchInfo.manufacturingDate = receiveItemRequest.batchInfo.manufacturingDate;
                 batchInfo.expiryDate = receiveItemRequest.batchInfo.expiryDate;
+                batchInfo.inventoryItem = inventoryItem;
+
+                Panache.withTransaction(batchInfo::persist);
 
                 activities.add(inventoryActivity);
             }
