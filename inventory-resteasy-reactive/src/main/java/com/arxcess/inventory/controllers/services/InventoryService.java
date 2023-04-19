@@ -23,6 +23,7 @@ public class InventoryService {
         inventoryItem.barcode = request.barcode;
         inventoryItem.isReturnable = request.isReturnable;
         inventoryItem.type = request.type;
+        inventoryItem.markUp = request.markUp;
         inventoryItem.persist();
 
         return Response.created(UriBuilder.fromResource(InventoryController.class).path("/" + inventoryItem.id).build()).entity(inventoryItem).build();
@@ -38,11 +39,13 @@ public class InventoryService {
     }
 
     public Response updateItem(Long id, InventoryItemRequest request) {
+
         InventoryItem inventoryItem = itemRepository.getById(id);
         inventoryItem.name = request.name;
         inventoryItem.barcode = request.barcode;
         inventoryItem.isReturnable = request.isReturnable;
         inventoryItem.type = request.type;
+        inventoryItem.markUp = request.markUp;
         inventoryItem.persist();
 
         return Response.noContent().build();

@@ -119,7 +119,6 @@ public class TransactionService {
 
             if (qty.compareTo(BigDecimal.ZERO) > 0) {
 
-                System.out.println("Sale...");
                 if (Boolean.TRUE.equals(saleItemRequest.serialNumbers.isEmpty()) && saleItemRequest.batchInfo == null) {
                     BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
 
@@ -187,8 +186,6 @@ public class TransactionService {
             } else {
 
                 throw new WebApplicationException("No items available for sale");
-
-//                return Response.serverError().entity("No items available for sale").build();
 
             }
 
