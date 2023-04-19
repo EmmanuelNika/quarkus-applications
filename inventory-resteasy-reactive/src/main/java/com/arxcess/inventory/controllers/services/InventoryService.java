@@ -23,6 +23,7 @@ public class InventoryService {
         inventoryItem.barcode = request.barcode;
         inventoryItem.isReturnable = request.isReturnable;
         inventoryItem.type = request.type;
+        inventoryItem.persist();
 
         return Response.created(UriBuilder.fromResource(InventoryController.class).path("/" + inventoryItem.id).build()).entity(inventoryItem).build();
 
@@ -42,6 +43,7 @@ public class InventoryService {
         inventoryItem.barcode = request.barcode;
         inventoryItem.isReturnable = request.isReturnable;
         inventoryItem.type = request.type;
+        inventoryItem.persist();
 
         return Response.noContent().build();
     }

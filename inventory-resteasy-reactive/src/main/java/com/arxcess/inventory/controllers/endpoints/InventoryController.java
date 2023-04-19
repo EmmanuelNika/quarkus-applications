@@ -53,6 +53,7 @@ public class InventoryController {
 
     @PUT
     @Path("{id: \\d+}")
+    @Transactional
     @APIResponse(responseCode = "201", description = "Update an inventory item", content = @Content(mediaType =
             "application/json", schema = @Schema(type = SchemaType.OBJECT, implementation = InventoryItem.class)))
     @APIResponse(responseCode = "400", description = "Item not found", content = @Content(mediaType =

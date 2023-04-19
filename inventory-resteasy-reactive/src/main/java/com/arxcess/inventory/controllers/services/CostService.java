@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 public class CostService {
 
     @Inject
-    InventoryCostService inventoryCostService;
+    InventoryCommonService inventoryCostService;
 
     public Uni<Response> getAverageCost(Long id) {
 

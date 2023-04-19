@@ -1,6 +1,7 @@
 package com.arxcess.inventory.controllers.services;
 
 import com.arxcess.inventory.controllers.endpoints.TransactionController;
+import com.arxcess.inventory.controllers.services.payloads.SaleItemRequest;
 import com.arxcess.inventory.controllers.services.payloads.SaleRequest;
 import com.arxcess.inventory.controllers.services.payloads.ReceiveRequest;
 import com.arxcess.inventory.controllers.services.statics.ActivityTransactionTypes;
@@ -14,6 +15,7 @@ import com.arxcess.inventory.domains.repository.InventoryItemRepository;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.math.BigDecimal;
@@ -34,7 +36,7 @@ public class TransactionService {
     InventoryActivityRepository activityRepository;
 
     @Inject
-    InventoryCostService inventoryCostService;
+    InventoryCommonService inventoryCommonService;
 
     public Response createReceive(ReceiveRequest request) {
 
@@ -110,73 +112,87 @@ public class TransactionService {
 
         List<InventoryActivity> activities = new ArrayList<>();
 
-        request.itemRequests.forEach(receiveItemRequest -> {
-            InventoryItem inventoryItem = itemRepository.getById(receiveItemRequest.itemId);
+        for (SaleItemRequest saleItemRequest : request.itemRequests) {
+            InventoryItem inventoryItem = itemRepository.getById(saleItemRequest.itemId);
 
-            if (Boolean.TRUE.equals(receiveItemRequest.serialNumbers.isEmpty()) && receiveItemRequest.batchInfo == null) {
-                BigDecimal unitPrice = inventoryCostService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
+            BigDecimal qty = inventoryCommonService.getQuantityOfItem(inventoryItem.id).onItem().transform(BigDecimal::abs).await().indefinitely();
 
-                InventoryActivity inventoryActivity = new InventoryActivity();
-                inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-                inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = unitPrice.negate();
-                inventoryActivity.costPrice = unitPrice.multiply(receiveItemRequest.quantity).negate();
-                inventoryActivity.quantity = receiveItemRequest.quantity.negate();
-                inventoryActivity.inventoryItem = inventoryItem;
+            if (qty.compareTo(BigDecimal.ZERO) > 0) {
 
-                inventoryActivity.persist();
+                System.out.println("Sale...");
+                if (Boolean.TRUE.equals(saleItemRequest.serialNumbers.isEmpty()) && saleItemRequest.batchInfo == null) {
+                    BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
 
-                activities.add(inventoryActivity);
+                    InventoryActivity inventoryActivity = new InventoryActivity();
+                    inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+                    inventoryActivity.date = request.date.atTime(LocalTime.now());
+                    inventoryActivity.unitPrice = unitPrice.negate();
+                    inventoryActivity.costPrice = unitPrice.multiply(saleItemRequest.quantity).negate();
+                    inventoryActivity.quantity = saleItemRequest.quantity.negate();
+                    inventoryActivity.inventoryItem = inventoryItem;
 
-            } else if (Boolean.FALSE.equals(receiveItemRequest.serialNumbers.isEmpty()) && receiveItemRequest.batchInfo == null) {
+                    inventoryActivity.persist();
 
-                receiveItemRequest.serialNumbers.forEach(serialNumber -> {
-                    BigDecimal unitPrice = inventoryCostService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
+                    activities.add(inventoryActivity);
+
+                } else if (Boolean.FALSE.equals(saleItemRequest.serialNumbers.isEmpty()) && saleItemRequest.batchInfo == null) {
+
+                    saleItemRequest.serialNumbers.forEach(serialNumber -> {
+                        BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
+
+                        InventoryActivity inventoryActivity = new InventoryActivity();
+                        inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+                        inventoryActivity.date = request.date.atTime(LocalTime.now());
+                        inventoryActivity.unitPrice = unitPrice.negate();
+                        inventoryActivity.costPrice = unitPrice.negate();
+                        inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
+                        inventoryActivity.inventoryItem = inventoryItem;
+
+                        InventoryItemSerialNumber itemSerialNumber = new InventoryItemSerialNumber();
+                        itemSerialNumber.serialNumber = serialNumber;
+                        itemSerialNumber.inventoryItem = inventoryItem;
+                        itemSerialNumber.persist();
+
+                        inventoryActivity.persist();
+
+                        activities.add(inventoryActivity);
+
+                    });
+
+                } else {
+
+                    BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
 
                     InventoryActivity inventoryActivity = new InventoryActivity();
                     inventoryActivity.transaction = ActivityTransactionTypes.SALE;
                     inventoryActivity.date = request.date.atTime(LocalTime.now());
                     inventoryActivity.unitPrice = unitPrice.negate();
                     inventoryActivity.costPrice = unitPrice.negate();
-                    inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
+                    inventoryActivity.quantity = saleItemRequest.quantity.negate();
                     inventoryActivity.inventoryItem = inventoryItem;
 
-                    InventoryItemSerialNumber itemSerialNumber = new InventoryItemSerialNumber();
-                    itemSerialNumber.serialNumber = serialNumber;
-                    itemSerialNumber.inventoryItem = inventoryItem;
-                    itemSerialNumber.persist();
+                    BatchInfo batchInfo = new BatchInfo();
+                    batchInfo.batchReference = batchInfoRepository.generateBatchReference(request.date);
+                    batchInfo.batchNumber = saleItemRequest.batchInfo.batchNumber;
+                    batchInfo.manufacturingDate = saleItemRequest.batchInfo.manufacturingDate;
+                    batchInfo.expiryDate = saleItemRequest.batchInfo.expiryDate;
+                    batchInfo.inventoryItem = inventoryItem;
+                    batchInfo.persist();
 
                     inventoryActivity.persist();
 
                     activities.add(inventoryActivity);
-
-                });
+                }
 
             } else {
 
-                BigDecimal unitPrice = inventoryCostService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
+                throw new WebApplicationException("No items available for sale");
 
-                InventoryActivity inventoryActivity = new InventoryActivity();
-                inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-                inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = unitPrice.negate();
-                inventoryActivity.costPrice = unitPrice.negate();
-                inventoryActivity.quantity = receiveItemRequest.quantity.negate();
-                inventoryActivity.inventoryItem = inventoryItem;
+//                return Response.serverError().entity("No items available for sale").build();
 
-                BatchInfo batchInfo = new BatchInfo();
-                batchInfo.batchReference = batchInfoRepository.generateBatchReference(request.date);
-                batchInfo.batchNumber = receiveItemRequest.batchInfo.batchNumber;
-                batchInfo.manufacturingDate = receiveItemRequest.batchInfo.manufacturingDate;
-                batchInfo.expiryDate = receiveItemRequest.batchInfo.expiryDate;
-                batchInfo.inventoryItem = inventoryItem;
-                batchInfo.persist();
-
-                inventoryActivity.persist();
-
-                activities.add(inventoryActivity);
             }
-        });
+
+        }
 
         return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build()).entity(activities).build();
 
