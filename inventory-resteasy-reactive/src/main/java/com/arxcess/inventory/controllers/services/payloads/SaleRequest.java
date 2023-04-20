@@ -8,6 +8,8 @@ public class SaleRequest {
 
     public LocalDate date;
 
+    public String method;
+
     public List<SaleItemRequest> itemRequests = new ArrayList<>();
 
 }

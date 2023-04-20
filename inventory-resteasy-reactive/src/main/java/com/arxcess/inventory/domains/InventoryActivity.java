@@ -21,6 +21,9 @@ public class InventoryActivity extends PanacheEntity {
     @Column(nullable = false, scale = 6)
     public BigDecimal quantity;
 
+    @Column(scale = 6)
+    public BigDecimal quantityRemaining;
+
     @Column(nullable = false, scale = 6)
     public BigDecimal unitPrice;
 
@@ -33,5 +36,17 @@ public class InventoryActivity extends PanacheEntity {
     @ManyToOne
     @JoinColumn(nullable = false)
     public InventoryItem inventoryItem;
+
+    @ManyToOne
+    @JoinColumn
+    public InventoryItemSerialNumber inventoryItemSerialNumber;
+
+    @ManyToOne
+    @JoinColumn
+    public BatchInfo batchInfo;
+
+    @ManyToOne
+    @JoinColumn
+    public InventoryActivity activityLine;
 
 }

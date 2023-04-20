@@ -1,6 +1,7 @@
 package com.arxcess.inventory.domains.repository;
 
 import com.arxcess.inventory.domains.BatchInfo;
+import com.arxcess.inventory.domains.InventoryItem;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -38,6 +39,12 @@ public class BatchInfoRepository implements PanacheRepository<BatchInfo> {
 
             return prefix + finalInv;
         }
+
+    }
+
+    public Boolean hasBatchNumber(InventoryItem inventoryItem) {
+
+        return find("inventoryItem = ?1", inventoryItem).firstResultOptional().isPresent();
 
     }
 

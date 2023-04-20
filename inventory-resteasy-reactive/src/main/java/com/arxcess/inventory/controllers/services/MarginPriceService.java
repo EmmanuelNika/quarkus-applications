@@ -1,26 +1,20 @@
 package com.arxcess.inventory.controllers.services;
 
-import com.arxcess.inventory.domains.InventoryItem;
-import com.arxcess.inventory.domains.repository.InventoryItemRepository;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import java.math.BigDecimal;
 
 @ApplicationScoped
 public class MarginPriceService {
-
-    @Inject
-    InventoryItemRepository itemRepository;
 
     @Inject
     InventoryCommonService inventoryCostService;
 
     public Uni<Response> getFromAverageCost(Long id) {
 
-        return inventoryCostService.calculateSellingPrice(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromAverageCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
 
     }
 

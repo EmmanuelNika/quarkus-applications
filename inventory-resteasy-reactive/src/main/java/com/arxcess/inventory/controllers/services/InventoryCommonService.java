@@ -1,5 +1,6 @@
 package com.arxcess.inventory.controllers.services;
 
+import com.arxcess.inventory.domains.InventoryItem;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.mysqlclient.MySQLPool;
 import io.vertx.mutiny.sqlclient.RowSet;
@@ -67,7 +68,7 @@ public class InventoryCommonService {
 
     }
 
-    public Uni<BigDecimal> calculateSellingPrice(Long id) {
+    public Uni<BigDecimal> calculateSellingPriceFromAverageCost(Long id) {
         String query = AVG_PRICE_QUERY.concat(", (SELECT markUp FROM InventoryItem WHERE id = %d) AS markUp")
                 .formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now(), id);
 
@@ -79,5 +80,19 @@ public class InventoryCommonService {
 
         });
 
+    }
+
+    public Uni<BigDecimal> getAvailableBySerialNumber(Long id) {
+        String query = """
+                SELECT id
+                SUM(quantity) AS quantity
+                FROM InventoryActivity
+                WHERE inventoryItemSerialNumber = %d
+                """.formatted(id);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
     }
 }
