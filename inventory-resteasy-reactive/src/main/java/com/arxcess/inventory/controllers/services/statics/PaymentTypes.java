@@ -2,6 +2,8 @@ package com.arxcess.inventory.controllers.services.statics;
 
 public class PaymentTypes {
 
+    private PaymentTypes() {}
+
     public static final String AVG = "Average";
 
     public static final String FEFO = "FEFO";

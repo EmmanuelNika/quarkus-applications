@@ -1,6 +1,6 @@
 package com.arxcess.inventory.controllers.services;
 
-import com.arxcess.inventory.domains.InventoryItem;
+import com.arxcess.inventory.controllers.services.statics.CostQuery;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.mysqlclient.MySQLPool;
 import io.vertx.mutiny.sqlclient.RowSet;
@@ -17,14 +17,7 @@ public class InventoryCommonService {
 
     private static final String AVG_PRICE = "averageCost";
 
-    private static final String AVG_PRICE_QUERY = """
-            SELECT
-                IF(
-                (SELECT SUM(quantity) FROM InventoryActivity WHERE inventoryItem_id = %d AND DATE(date) <= '%s') > 0,
-                (SELECT SUM(costPrice) / SUM(quantity) FROM InventoryActivity WHERE inventoryItem_id = %d AND DATE(date) <= '%s'),
-                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND DATE(date) <= '%s' ORDER BY DATE LIMIT 1)
-                ) AS averageCost
-            """;
+    private static final String FEFO_PRICE ="fefoCost";
 
     private static final String MARK_UP = "markUp";
 
@@ -48,7 +41,7 @@ public class InventoryCommonService {
 
     public Uni<BigDecimal> calculateAverageCost(Long id) {
 
-        String query = AVG_PRICE_QUERY.formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now());
+        String query = CostQuery.AVG_PRICE_QUERY.formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now());
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
@@ -59,7 +52,7 @@ public class InventoryCommonService {
 
     public Uni<BigDecimal> calculateAverageCost(Long id, LocalDate localDate) {
 
-        String query = AVG_PRICE_QUERY.formatted(id, localDate, id, localDate, id, localDate);
+        String query = CostQuery.AVG_PRICE_QUERY.formatted(id, localDate, id, localDate, id, localDate);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
@@ -68,8 +61,19 @@ public class InventoryCommonService {
 
     }
 
+    public Uni<BigDecimal> calculateFEFOCost(Long id) {
+
+        String query = CostQuery.FEFO_PRICE_QUERY.formatted(id, id, id, id, id);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
+
+    }
+
     public Uni<BigDecimal> calculateSellingPriceFromAverageCost(Long id) {
-        String query = AVG_PRICE_QUERY.concat(", (SELECT markUp FROM InventoryItem WHERE id = %d) AS markUp")
+        String query = CostQuery.AVG_PRICE_QUERY.concat(", (SELECT markUp FROM InventoryItem WHERE id = %d) AS markUp")
                 .formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now(), id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {

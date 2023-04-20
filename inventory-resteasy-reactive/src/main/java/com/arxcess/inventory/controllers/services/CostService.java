@@ -33,9 +33,9 @@ public class CostService {
         return Response.ok().build();
     }
 
-    public Response getFEFOCost(Long id) {
+    public Uni<Response> getFEFOCost(Long id) {
 
-        return Response.ok().build();
+        return inventoryCostService.calculateFEFOCost(id).onItem().transform(cost -> Response.ok(cost).build());
     }
 
 }

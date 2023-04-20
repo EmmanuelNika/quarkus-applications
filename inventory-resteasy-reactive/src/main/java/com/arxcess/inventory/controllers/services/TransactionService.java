@@ -82,6 +82,7 @@ public class TransactionService {
                     itemSerialNumber.inventoryItem = inventoryItem;
                     itemSerialNumber.persist();
 
+                    inventoryActivity.inventoryItemSerialNumber = itemSerialNumber;
                     inventoryActivity.persist();
 
                     activities.add(inventoryActivity);
@@ -107,6 +108,7 @@ public class TransactionService {
                 batchInfo.inventoryItem = inventoryItem;
                 batchInfo.persist();
 
+                inventoryActivity.batchInfo = batchInfo;
                 inventoryActivity.persist();
 
                 activities.add(inventoryActivity);

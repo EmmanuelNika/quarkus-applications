@@ -2,6 +2,8 @@ package com.arxcess.inventory.domains;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
+import javax.json.bind.annotation.JsonbDateFormat;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 public class InventoryActivity extends PanacheEntity {
 
+    @JsonbDateFormat(value = "dd/MM/yyyy HH:mm")
     @Column(nullable = false)
     public LocalDateTime date;
 
@@ -47,6 +50,7 @@ public class InventoryActivity extends PanacheEntity {
 
     @ManyToOne
     @JoinColumn
+    @JsonbTransient
     public InventoryActivity activityLine;
 
 }

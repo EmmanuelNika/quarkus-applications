@@ -60,7 +60,7 @@ public class CostController {
     @Path("first-expiry-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get First Expiry, First Out (FEFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getFEFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getFEFOCost(@PathParam("id") Long id) {
         return service.getFEFOCost(id);
     }
 }
