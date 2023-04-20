@@ -2,6 +2,8 @@ package com.arxcess.inventory.controllers.services.statics;
 
 public class CostQuery {
 
+    public static final String MARK_UP_QUERY = ", (SELECT markUp FROM InventoryItem WHERE id = %d) AS markUp";
+
     public static final String AVG_PRICE_QUERY = """
             SELECT
                 IF(

@@ -18,24 +18,24 @@ public class MarginPriceService {
 
     }
 
-    public Response getFromHIFOCost(Long id) {
+    public Uni<Response> getFromHIFOCost(Long id) {
 
-        return Response.ok().build();
+        return inventoryCostService.calculateSellingPriceFromHIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
-    public Response getFromFIFOCost(Long id) {
+    public Uni<Response> getFromFIFOCost(Long id) {
 
-        return Response.ok().build();
+        return inventoryCostService.calculateSellingPriceFromFIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
-    public Response getFromLIFOCost(Long id) {
+    public Uni<Response> getFromLIFOCost(Long id) {
 
-        return Response.ok().build();
+        return inventoryCostService.calculateSellingPriceFromLIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
-    public Response getFromFEFOCost(Long id) {
+    public Uni<Response> getFromFEFOCost(Long id) {
 
-        return Response.ok().build();
+        return inventoryCostService.calculateSellingPriceFromFEFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
 }

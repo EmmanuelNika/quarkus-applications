@@ -17,13 +17,13 @@ public class InventoryCommonService {
 
     private static final String AVG_PRICE = "averageCost";
 
-    private static final String FEFO_PRICE ="fefoCost";
+    private static final String FEFO_PRICE = "fefoCost";
 
-    private static final String FIFO_PRICE ="fifoCost";
+    private static final String FIFO_PRICE = "fifoCost";
 
-    private static final String HIFO_PRICE ="hifoCost";
+    private static final String HIFO_PRICE = "hifoCost";
 
-    private static final String LIFO_PRICE ="lifoCost";
+    private static final String LIFO_PRICE = "lifoCost";
 
     private static final String MARK_UP = "markUp";
 
@@ -112,7 +112,7 @@ public class InventoryCommonService {
     }
 
     public Uni<BigDecimal> calculateSellingPriceFromAverageCost(Long id) {
-        String query = CostQuery.AVG_PRICE_QUERY.concat(", (SELECT markUp FROM InventoryItem WHERE id = %d) AS markUp")
+        String query = CostQuery.AVG_PRICE_QUERY.concat(CostQuery.MARK_UP_QUERY)
                 .formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now(), id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
@@ -120,6 +120,62 @@ public class InventoryCommonService {
             BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return averageCost.add((averageCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+        });
+
+    }
+
+    public Uni<BigDecimal> calculateSellingPriceFromFEFOCost(Long id) {
+        String query = CostQuery.FEFO_PRICE_QUERY.concat(CostQuery.MARK_UP_QUERY)
+                .formatted(id, id, id, id);
+
+        return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FEFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+
+            return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+        });
+
+    }
+
+    public Uni<BigDecimal> calculateSellingPriceFromFIFOCost(Long id) {
+        String query = CostQuery.FIFO_PRICE_QUERY.concat(CostQuery.MARK_UP_QUERY)
+                .formatted(id, id, id, id);
+
+        return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+
+            return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+        });
+
+    }
+
+    public Uni<BigDecimal> calculateSellingPriceFromHIFOCost(Long id) {
+        String query = CostQuery.HIFO_PRICE_QUERY.concat(CostQuery.MARK_UP_QUERY)
+                .formatted(id, id, id, id);
+
+        return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(HIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+
+            return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+        });
+
+    }
+
+    public Uni<BigDecimal> calculateSellingPriceFromLIFOCost(Long id) {
+        String query = CostQuery.LIFO_PRICE_QUERY.concat(CostQuery.MARK_UP_QUERY)
+                .formatted(id, id, id, id);
+
+        return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(LIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+
+            return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
         });
 
