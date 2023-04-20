@@ -36,7 +36,7 @@ public class CostController {
     @Path("highest-in-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get Highest In, First Out (HIFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getHIFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getHIFOCost(@PathParam("id") Long id) {
         return service.getHIFOCost(id);
     }
 
