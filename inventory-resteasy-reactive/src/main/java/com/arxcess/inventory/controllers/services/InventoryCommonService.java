@@ -93,8 +93,6 @@ public class InventoryCommonService {
 
         String query = CostQuery.HIFO_PRICE_QUERY.formatted(id, id, id);
 
-        System.out.println(query);
-
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
                 .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO)
@@ -105,8 +103,6 @@ public class InventoryCommonService {
     public Uni<BigDecimal> calculateLIFOCost(Long id) {
 
         String query = CostQuery.LIFO_PRICE_QUERY.formatted(id, id, id);
-
-        System.out.println("LIFO\n" + query);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)

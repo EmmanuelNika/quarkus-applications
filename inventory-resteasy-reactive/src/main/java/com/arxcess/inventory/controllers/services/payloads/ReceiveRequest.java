@@ -10,7 +10,7 @@ import java.util.List;
 public class ReceiveRequest {
 
     @Schema(required = true, example = "04/04/2023")
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate date;
 
     public List<ReceiveItemRequest> itemRequests = new ArrayList<>();

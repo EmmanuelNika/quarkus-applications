@@ -10,7 +10,7 @@ import java.util.List;
 public class SaleRequest {
 
     @Schema(required = true, example = "10/04/2023")
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate date;
 
     @Schema(example = "Average", enumeration = "{Average, FEFO, FIFO, HIFO, LIFO}")

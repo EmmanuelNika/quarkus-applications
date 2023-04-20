@@ -15,8 +15,8 @@ public class CostQuery {
             SELECT
                 IF(
                 (SELECT SUM(quantityRemaining) FROM InventoryActivity WHERE inventoryItem_id = %d) > 0,
-                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining > 0 ORDER BY date ASC LIMIT 1),
-                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining = 0 ORDER BY date DESC LIMIT 1)
+                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining > 0 ORDER BY UNIX_TIMESTAMP(date) ASC LIMIT 1),
+                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining = 0 ORDER BY UNIX_TIMESTAMP(date) DESC LIMIT 1)
                 ) AS  fifoCost
             """;
 
@@ -42,8 +42,8 @@ public class CostQuery {
             SELECT
                 IF(
                 (SELECT SUM(quantityRemaining) FROM InventoryActivity WHERE inventoryItem_id = %d) > 0,
-                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining > 0 ORDER BY date DESC LIMIT 1),
-                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining = 0 ORDER BY date ASC LIMIT 1)
+                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining > 0 ORDER BY UNIX_TIMESTAMP(date) DESC LIMIT 1),
+                (SELECT unitPrice FROM InventoryActivity WHERE inventoryItem_id = %d AND quantityRemaining = 0 ORDER BY UNIX_TIMESTAMP(date) ASC LIMIT 1)
                 ) AS  lifoCost
             """;
 

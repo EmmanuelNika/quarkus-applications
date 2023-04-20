@@ -11,11 +11,11 @@ public class BatchInfoRequest {
     public String batchNumber;
 
     @Schema(required = true, example = "03/02/2022")
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate manufacturingDate;
 
     @Schema(required = true, example = "03/02/2023")
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate expiryDate;
 
 }

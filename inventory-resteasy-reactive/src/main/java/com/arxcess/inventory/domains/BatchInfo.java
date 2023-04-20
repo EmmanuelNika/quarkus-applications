@@ -19,10 +19,10 @@ public class BatchInfo extends PanacheEntity {
     @Column(nullable = false)
     public String batchNumber;
 
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate manufacturingDate;
 
-    @JsonbDateFormat(value = "dd/MM/yyyy")
+    @JsonbDateFormat("dd/MM/yyyy")
     public LocalDate expiryDate;
 
     @ManyToOne
