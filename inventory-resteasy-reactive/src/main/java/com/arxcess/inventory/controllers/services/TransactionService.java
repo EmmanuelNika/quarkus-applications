@@ -17,6 +17,7 @@ import com.arxcess.inventory.domains.repository.InventoryItemSerialNumberReposit
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -216,17 +217,17 @@ public class TransactionService {
         for (SaleItemRequest saleItemRequest : request.itemRequests) {
             InventoryItem inventoryItem = itemRepository.getById(saleItemRequest.itemId);
 
-            if (Boolean.TRUE.equals(serialNumberRepository.hasSerialNumber(inventoryItem))) {
+            if (Boolean.FALSE.equals(saleItemRequest.serialNumbers.isEmpty()) && Boolean.TRUE.equals(serialNumberRepository.hasSerialNumber(inventoryItem))) {
                 // FIFO, HIFO, LIFO
-                activities.addAll(saleItemWithSerialNumber(inventoryItem, saleItemRequest, request.date, getSellingPrice(inventoryItem.id, request.method)));
+                activities.addAll(saleItemWithSerialNumber(inventoryItem, saleItemRequest, request.date));
 
-            } else if (Boolean.TRUE.equals(batchInfoRepository.hasBatchNumber(inventoryItem))) {
+            } else if (saleItemRequest.batchInfo != null && Boolean.TRUE.equals(batchInfoRepository.hasBatchNumber(inventoryItem))) {
                 // FIFO, HIFO, LIFO, FEFO
-                activities.add(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date, getSellingPrice(inventoryItem.id, request.method)));
+                activities.add(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date));
 
             } else {
                 // AVG, FIFO, HIFO, LIFO
-                activities.add(saleUnTrackedItem(inventoryItem, saleItemRequest, request.date, getSellingPrice(inventoryItem.id, request.method)));
+                activities.addAll(saleUnTrackedItem(inventoryItem, saleItemRequest, request.date, request.method));
             }
 
         }
@@ -234,41 +235,47 @@ public class TransactionService {
         return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build()).entity(activities).build();
     }
 
-    private BigDecimal getSellingPrice(Long itemId, String method) {
+    private List<InventoryActivity> saleUnTrackedItem(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, String method) {
 
-        if (method.equalsIgnoreCase(PaymentTypes.AVG)) {
-            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
-        } else if (method.equalsIgnoreCase(PaymentTypes.FEFO)) {
-            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
-        } else if (method.equalsIgnoreCase(PaymentTypes.FIFO)) {
-            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
-        } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
-            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
-        } else {
-            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
-        }
-    }
+        List<InventoryActivity> activities = new ArrayList<>();
 
-    private InventoryActivity saleUnTrackedItem(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, BigDecimal sellingPrice) {
-
-        BigDecimal qty = inventoryCommonService.getQuantityOfItem(inventoryItem.id).onItem().transform(BigDecimal::abs).await().indefinitely();
+        BigDecimal qty = inventoryCommonService.getQuantityOfUntrackedItem(inventoryItem.id).onItem().transform(BigDecimal::abs).await().indefinitely();
 
         if (qty.compareTo(BigDecimal.ZERO) > 0) {
 
-            BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, saleDate).onItem().transform(BigDecimal::abs).await().indefinitely();
+            BigDecimal qtyToBeSold = saleItemRequest.quantity;
 
-            InventoryActivity inventoryActivity = new InventoryActivity();
-            inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-            inventoryActivity.date = saleDate.atTime(LocalTime.now());
-            inventoryActivity.unitPrice = unitPrice.negate();
-            inventoryActivity.sellingPrice = sellingPrice;
-            inventoryActivity.costPrice = unitPrice.multiply(saleItemRequest.quantity).negate();
-            inventoryActivity.quantity = saleItemRequest.quantity.negate();
-            inventoryActivity.inventoryItem = inventoryItem;
+            while (qtyToBeSold.compareTo(BigDecimal.ZERO) > 0) {
+                InventoryActivity activityLine = getActivityLine(inventoryItem.id, method);
 
-            inventoryActivity.persist();
+                BigDecimal availableQty = activityLine.quantityRemaining;
+                BigDecimal soldQty = availableQty.subtract(qtyToBeSold).compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
 
-            return inventoryActivity;
+                BigDecimal unitPrice = getCostPrice(inventoryItem.id, method);
+                BigDecimal sellingPrice = getSellingPrice(inventoryItem.id, method);
+
+                InventoryActivity inventoryActivity = new InventoryActivity();
+                inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+                inventoryActivity.date = saleDate.atTime(LocalTime.now());
+                inventoryActivity.unitPrice = unitPrice.negate();
+                inventoryActivity.sellingPrice = sellingPrice;
+                inventoryActivity.costPrice = unitPrice.multiply(soldQty).negate();
+                inventoryActivity.quantity = soldQty.negate();
+                inventoryActivity.inventoryItem = inventoryItem;
+                inventoryActivity.activityLine = activityLine;
+
+                inventoryActivity.persist();
+
+                activityLine.quantityRemaining = activityLine.quantity.subtract(soldQty);
+                activityLine.persist();
+
+                qtyToBeSold = qtyToBeSold.subtract(soldQty);
+
+                activities.add(inventoryActivity);
+
+            }
+
+            return activities;
 
         } else {
 
@@ -277,16 +284,77 @@ public class TransactionService {
         }
     }
 
-    private List<InventoryActivity> saleItemWithSerialNumber(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, BigDecimal sellingPrice) {
+    private List<InventoryActivity> saleItemWithSerialNumber(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate) {
         List<InventoryActivity> activities = new ArrayList<>();
 
         return activities;
     }
 
-    private InventoryActivity saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, BigDecimal sellingPrice) {
+    private InventoryActivity saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate) {
         InventoryActivity inventoryActivity = new InventoryActivity();
 
         return inventoryActivity;
+    }
+
+    private BigDecimal getCostPrice(Long itemId, String method) {
+
+        if (method.equalsIgnoreCase(PaymentTypes.AVG)) {
+            return inventoryCommonService.calculateAverageCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.FEFO)) {
+            return inventoryCommonService.calculateFEFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.FIFO)) {
+            return inventoryCommonService.calculateFIFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
+            return inventoryCommonService.calculateHIFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.LIFO)) {
+            return inventoryCommonService.calculateLIFOCost(itemId).await().indefinitely();
+
+        } else {
+            throw new NotFoundException("Method type not found!");
+        }
+    }
+
+    private BigDecimal getSellingPrice(Long itemId, String method) {
+
+        if (method.equalsIgnoreCase(PaymentTypes.AVG)) {
+            return inventoryCommonService.calculateSellingPriceFromAverageCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.FEFO)) {
+            return inventoryCommonService.calculateSellingPriceFromFEFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.FIFO)) {
+            return inventoryCommonService.calculateSellingPriceFromFIFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
+            return inventoryCommonService.calculateSellingPriceFromHIFOCost(itemId).await().indefinitely();
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.LIFO)) {
+            return inventoryCommonService.calculateSellingPriceFromLIFOCost(itemId).await().indefinitely();
+
+        } else {
+            throw new NotFoundException("Method type not found!");
+        }
+    }
+
+    private InventoryActivity getActivityLine(Long itemId, String method) {
+
+        if (method.equalsIgnoreCase(PaymentTypes.FIFO) || method.equalsIgnoreCase(PaymentTypes.AVG) || method.equalsIgnoreCase(PaymentTypes.FEFO)) {
+            return activityRepository.getFirstInForSaleActivity(itemId);
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
+            return activityRepository.getHighestInForSaleActivity(itemId);
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.LIFO)) {
+            return activityRepository.getLastInForSaleActivity(itemId);
+
+        } else {
+            throw new NotFoundException("Method type not found!");
+        }
+
     }
 
     public Response getActivities() {

@@ -45,6 +45,39 @@ public class InventoryCommonService {
 
     }
 
+    public Uni<BigDecimal> getQuantityOfUntrackedItem(Long id) {
+
+        String query = """
+                SELECT
+                SUM(quantity) AS quantity
+                FROM InventoryActivity
+                WHERE inventoryItem_id = %d
+                AND batchInfo_id IS NULL
+                AND inventoryItemSerialNumber_id IS NULL""".formatted(id);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
+
+    }
+
+    public Uni<BigDecimal> getQuantityOfBatchItem(Long id, Long batchId) {
+
+        String query = """
+                SELECT
+                SUM(quantity) AS quantity
+                FROM InventoryActivity
+                WHERE inventoryItem_id = %d
+                AND batchInfo_id = %d""".formatted(id, batchId);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
+
+    }
+
     public Uni<BigDecimal> calculateAverageCost(Long id) {
 
         String query = CostQuery.AVG_PRICE_QUERY.formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now());
