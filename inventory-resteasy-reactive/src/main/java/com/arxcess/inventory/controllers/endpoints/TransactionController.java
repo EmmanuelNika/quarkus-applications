@@ -42,7 +42,7 @@ public class TransactionController {
     @APIResponse(responseCode = "201", description = "Save an inventory item sale", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = InventoryItem.class)))
     public Response createSale(@Valid SaleRequest request) {
-        return service.createSale(request);
+        return service.makeSale(request);
     }
 
     @GET

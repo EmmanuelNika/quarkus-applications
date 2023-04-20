@@ -15,18 +15,18 @@ public class InventoryActivityRepository implements PanacheRepository<InventoryA
     }
 
     public InventoryActivity getFirstInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date ASC LIMIT 1", itemId).singleResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date ASC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getLastInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date DESC LIMIT 1", itemId).singleResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date DESC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getHighestInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND MAX(unitPrice) AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId).singleResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND MAX(unitPrice) AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getSerialNoForSaleActivity(Long itemId, String serialNumber) {
-        return find("inventoryItem_id = ?1 AND inventoryItemSerialNumber.serialNumber = ?2 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId, serialNumber).singleResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND inventoryItemSerialNumber.serialNumber = ?2 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId, serialNumber).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 }

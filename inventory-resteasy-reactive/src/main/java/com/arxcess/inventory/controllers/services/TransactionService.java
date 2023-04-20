@@ -266,7 +266,7 @@ public class TransactionService {
 
                 inventoryActivity.persist();
 
-                activityLine.quantityRemaining = activityLine.quantity.subtract(soldQty);
+                activityLine.quantityRemaining = activityLine.quantityRemaining.subtract(soldQty);
                 activityLine.persist();
 
                 qtyToBeSold = qtyToBeSold.subtract(soldQty);
