@@ -19,6 +19,8 @@ public class InventoryCommonService {
 
     private static final String FEFO_PRICE ="fefoCost";
 
+    private static final String FIFO_PRICE ="fifoCost";
+
     private static final String MARK_UP = "markUp";
 
     @Inject
@@ -68,6 +70,17 @@ public class InventoryCommonService {
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
                 .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
+
+    }
+
+    public Uni<BigDecimal> calculateFIFOCost(Long id) {
+
+        String query = CostQuery.FIFO_PRICE_QUERY.formatted(id, id, id, id, id);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
