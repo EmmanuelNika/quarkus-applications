@@ -52,7 +52,7 @@ public class CostController {
     @Path("last-in-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get Last In, First Out (LIFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getLIFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getLIFOCost(@PathParam("id") Long id) {
         return service.getLIFOCost(id);
     }
 

@@ -23,6 +23,8 @@ public class InventoryCommonService {
 
     private static final String HIFO_PRICE ="hifoCost";
 
+    private static final String LIFO_PRICE ="lifoCost";
+
     private static final String MARK_UP = "markUp";
 
     @Inject
@@ -96,6 +98,19 @@ public class InventoryCommonService {
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
                 .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
+
+    }
+
+    public Uni<BigDecimal> calculateLIFOCost(Long id) {
+
+        String query = CostQuery.LIFO_PRICE_QUERY.formatted(id, id, id);
+
+        System.out.println("LIFO\n" + query);
+
+        return client.preparedQuery(query).execute()
+                .onItem().ifNotNull().transform(RowSet::iterator)
+                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
