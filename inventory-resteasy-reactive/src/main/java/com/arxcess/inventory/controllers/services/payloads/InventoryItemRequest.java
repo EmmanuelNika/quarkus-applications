@@ -2,6 +2,8 @@ package com.arxcess.inventory.controllers.services.payloads;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import java.math.BigDecimal;
+
 public class InventoryItemRequest {
 
     @Schema(required = true, example = "Headsets")
@@ -14,5 +16,8 @@ public class InventoryItemRequest {
     public String type;
 
     public Boolean isReturnable;
+
+    @Schema(required = true, example = "20", description = "Value as a percentage")
+    public BigDecimal markUp;
 
 }

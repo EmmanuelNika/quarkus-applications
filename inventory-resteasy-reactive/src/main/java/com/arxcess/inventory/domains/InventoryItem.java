@@ -4,6 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import java.math.BigDecimal;
 
 @Entity
 public class InventoryItem extends PanacheEntity {
@@ -17,5 +18,7 @@ public class InventoryItem extends PanacheEntity {
     public String type;
 
     public Boolean isReturnable;
+
+    public BigDecimal markUp;
 
 }

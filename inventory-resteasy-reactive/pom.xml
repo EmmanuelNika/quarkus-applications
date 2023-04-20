@@ -58,6 +58,10 @@
             <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jsonb</artifactId>
+        </dependency>
+        <dependency>
             <artifactId>quarkus-hibernate-validator</artifactId>
             <groupId>io.quarkus</groupId>
         </dependency>
