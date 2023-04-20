@@ -1,8 +1,8 @@
 package com.arxcess.inventory.domains;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -15,7 +15,7 @@ public class InventoryItemSerialNumber extends PanacheEntity {
     public String serialNumber;
 
     @ManyToOne
-    @JsonbTransient
+    @JsonIgnore
     @JoinColumn(nullable = false)
     public InventoryItem inventoryItem;
 

@@ -1,9 +1,9 @@
 package com.arxcess.inventory.domains;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-import javax.json.bind.annotation.JsonbDateFormat;
-import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -19,14 +19,14 @@ public class BatchInfo extends PanacheEntity {
     @Column(nullable = false)
     public String batchNumber;
 
-    @JsonbDateFormat("dd/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     public LocalDate manufacturingDate;
 
-    @JsonbDateFormat("dd/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     public LocalDate expiryDate;
 
     @ManyToOne
-    @JsonbTransient
+    @JsonIgnore
     @JoinColumn(nullable = false)
     public InventoryItem inventoryItem;
 
