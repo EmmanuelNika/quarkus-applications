@@ -33,14 +33,15 @@ public class InventoryCommonService {
     public Uni<BigDecimal> getQuantityOfItem(Long id) {
 
         String query = """
-                SELECT
-                SUM(quantity) AS quantity
-                FROM InventoryActivity
-                WHERE inventoryItem_id = %d""".formatted(id);
+                       SELECT
+                       SUM(quantity) AS quantity
+                       FROM InventoryActivity
+                       WHERE inventoryItem_id = %d""".formatted(id);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -48,16 +49,17 @@ public class InventoryCommonService {
     public Uni<BigDecimal> getQuantityOfUntrackedItem(Long id) {
 
         String query = """
-                SELECT
-                SUM(quantity) AS quantity
-                FROM InventoryActivity
-                WHERE inventoryItem_id = %d
-                AND batchInfo_id IS NULL
-                AND inventoryItemSerialNumber_id IS NULL""".formatted(id);
+                       SELECT
+                       SUM(quantity) AS quantity
+                       FROM InventoryActivity
+                       WHERE inventoryItem_id = %d
+                       AND batchInfo_id IS NULL
+                       AND inventoryItemSerialNumber_id IS NULL""".formatted(id);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -65,15 +67,16 @@ public class InventoryCommonService {
     public Uni<BigDecimal> getQuantityOfBatchItem(Long id, Long batchId) {
 
         String query = """
-                SELECT
-                SUM(quantity) AS quantity
-                FROM InventoryActivity
-                WHERE inventoryItem_id = %d
-                AND batchInfo_id = %d""".formatted(id, batchId);
+                       SELECT
+                       SUM(quantity) AS quantity
+                       FROM InventoryActivity
+                       WHERE inventoryItem_id = %d
+                       AND batchInfo_id = %d""".formatted(id, batchId);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -84,7 +87,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -95,7 +99,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -106,7 +111,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -117,7 +123,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -128,7 +135,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -139,7 +147,8 @@ public class InventoryCommonService {
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
 
     }
@@ -149,8 +158,10 @@ public class InventoryCommonService {
                 .formatted(id, LocalDate.now(), id, LocalDate.now(), id, LocalDate.now(), id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
-            BigDecimal averageCost = rowSet.iterator().next().getBigDecimal(AVG_PRICE) != null ? rowSet.iterator().next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO;
-            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+            BigDecimal averageCost = rowSet.iterator().next().getBigDecimal(AVG_PRICE) != null ? rowSet.iterator()
+                    .next().getBigDecimal(AVG_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next()
+                    .getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return averageCost.add((averageCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
@@ -163,8 +174,10 @@ public class InventoryCommonService {
                 .formatted(id, id, id, id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
-            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FEFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO;
-            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FEFO_PRICE) != null ? rowSet.iterator().next()
+                    .getBigDecimal(FEFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next()
+                    .getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
@@ -177,8 +190,10 @@ public class InventoryCommonService {
                 .formatted(id, id, id, id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
-            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO;
-            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(FIFO_PRICE) != null ? rowSet.iterator().next()
+                    .getBigDecimal(FIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next()
+                    .getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
@@ -191,8 +206,10 @@ public class InventoryCommonService {
                 .formatted(id, id, id, id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
-            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(HIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO;
-            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(HIFO_PRICE) != null ? rowSet.iterator().next()
+                    .getBigDecimal(HIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next()
+                    .getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
@@ -205,8 +222,10 @@ public class InventoryCommonService {
                 .formatted(id, id, id, id);
 
         return client.preparedQuery(query).execute().onItem().transform(rowSet -> {
-            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(LIFO_PRICE) != null ? rowSet.iterator().next().getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO;
-            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next().getBigDecimal(MARK_UP) : BigDecimal.ZERO;
+            BigDecimal unitCost = rowSet.iterator().next().getBigDecimal(LIFO_PRICE) != null ? rowSet.iterator().next()
+                    .getBigDecimal(LIFO_PRICE) : BigDecimal.ZERO;
+            BigDecimal markUp = rowSet.iterator().next().getBigDecimal(MARK_UP) != null ? rowSet.iterator().next()
+                    .getBigDecimal(MARK_UP) : BigDecimal.ZERO;
 
             return unitCost.add((unitCost.multiply(markUp.multiply(BigDecimal.valueOf(0.01)))));
 
@@ -216,15 +235,16 @@ public class InventoryCommonService {
 
     public Uni<BigDecimal> getAvailableBySerialNumber(Long id) {
         String query = """
-                SELECT id
-                SUM(quantity) AS quantity
-                FROM InventoryActivity
-                WHERE inventoryItemSerialNumber = %d
-                """.formatted(id);
+                       SELECT id
+                       SUM(quantity) AS quantity
+                       FROM InventoryActivity
+                       WHERE inventoryItemSerialNumber = %d
+                       """.formatted(id);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
-                .onItem().ifNotNull().transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
+                .onItem().ifNotNull()
+                .transform(iterator -> iterator.hasNext() ? iterator.next().getBigDecimal(QTY) : BigDecimal.ZERO)
                 .onItem().ifNull().continueWith(() -> BigDecimal.ZERO);
     }
 }

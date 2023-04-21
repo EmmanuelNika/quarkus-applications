@@ -26,7 +26,8 @@ public class InventoryService {
         inventoryItem.markUp = request.markUp;
         inventoryItem.persist();
 
-        return Response.created(UriBuilder.fromResource(InventoryController.class).path("/" + inventoryItem.id).build()).entity(inventoryItem).build();
+        return Response.created(UriBuilder.fromResource(InventoryController.class).path("/" + inventoryItem.id).build())
+                .entity(inventoryItem).build();
 
     }
 

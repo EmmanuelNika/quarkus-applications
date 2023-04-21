@@ -14,28 +14,33 @@ public class MarginPriceService {
 
     public Uni<Response> getFromAverageCost(Long id) {
 
-        return inventoryCostService.calculateSellingPriceFromAverageCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromAverageCost(id).onItem().ifNotNull()
+                .transform(sellingPrice -> Response.ok(sellingPrice).build());
 
     }
 
     public Uni<Response> getFromHIFOCost(Long id) {
 
-        return inventoryCostService.calculateSellingPriceFromHIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromHIFOCost(id).onItem().ifNotNull()
+                .transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
     public Uni<Response> getFromFIFOCost(Long id) {
 
-        return inventoryCostService.calculateSellingPriceFromFIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromFIFOCost(id).onItem().ifNotNull()
+                .transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
     public Uni<Response> getFromLIFOCost(Long id) {
 
-        return inventoryCostService.calculateSellingPriceFromLIFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromLIFOCost(id).onItem().ifNotNull()
+                .transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
     public Uni<Response> getFromFEFOCost(Long id) {
 
-        return inventoryCostService.calculateSellingPriceFromFEFOCost(id).onItem().ifNotNull().transform(sellingPrice -> Response.ok(sellingPrice).build());
+        return inventoryCostService.calculateSellingPriceFromFEFOCost(id).onItem().ifNotNull()
+                .transform(sellingPrice -> Response.ok(sellingPrice).build());
     }
 
 }

@@ -32,12 +32,12 @@ public class ErrorMapper implements ExceptionMapper<Exception> {
         String fileName = error.getTime().toLocalDate() + "-log.txt";
 
         String message = """
-                Error Id: %s
-                Path: %s
-                Date: %s
-                Title: %s
-                Message: %s
-                """.formatted(error.getErrorId(), error.getPath(), error.getTime(), error.getTitle(), error.getMessage());
+                         Error Id: %s
+                         Path: %s
+                         Date: %s
+                         Title: %s
+                         Message: %s
+                         """.formatted(error.getErrorId(), error.getPath(), error.getTime(), error.getTitle(), error.getMessage());
 
         Path targetLocation = Paths.get(STATIC_FILES);
 

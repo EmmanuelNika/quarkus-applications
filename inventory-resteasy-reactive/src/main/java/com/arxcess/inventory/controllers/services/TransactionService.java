@@ -1,9 +1,9 @@
 package com.arxcess.inventory.controllers.services;
 
 import com.arxcess.inventory.controllers.endpoints.TransactionController;
+import com.arxcess.inventory.controllers.services.payloads.ReceiveRequest;
 import com.arxcess.inventory.controllers.services.payloads.SaleItemRequest;
 import com.arxcess.inventory.controllers.services.payloads.SaleRequest;
-import com.arxcess.inventory.controllers.services.payloads.ReceiveRequest;
 import com.arxcess.inventory.controllers.services.statics.ActivityTransactionTypes;
 import com.arxcess.inventory.controllers.services.statics.PaymentTypes;
 import com.arxcess.inventory.domains.BatchInfo;
@@ -120,7 +120,8 @@ public class TransactionService {
             }
         });
 
-        return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build()).entity(activities).build();
+        return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build())
+                .entity(activities).build();
 
     }
 
@@ -145,14 +146,16 @@ public class TransactionService {
 
         }
 
-        return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build()).entity(activities).build();
+        return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build())
+                .entity(activities).build();
     }
 
     private List<InventoryActivity> saleUnTrackedItem(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, String method) {
 
         List<InventoryActivity> activities = new ArrayList<>();
 
-        BigDecimal qty = inventoryCommonService.getQuantityOfUntrackedItem(inventoryItem.id).onItem().transform(BigDecimal::abs).await().indefinitely();
+        BigDecimal qty = inventoryCommonService.getQuantityOfUntrackedItem(inventoryItem.id).onItem()
+                .transform(BigDecimal::abs).await().indefinitely();
 
         if (qty.compareTo(BigDecimal.ZERO) > 0) {
 
@@ -162,7 +165,8 @@ public class TransactionService {
                 InventoryActivity activityLine = getActivityLine(inventoryItem.id, method);
 
                 BigDecimal availableQty = activityLine.quantityRemaining;
-                BigDecimal soldQty = availableQty.subtract(qtyToBeSold).compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
+                BigDecimal soldQty = availableQty.subtract(qtyToBeSold)
+                        .compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
 
                 BigDecimal unitPrice = getCostPrice(inventoryItem.id, method);
                 BigDecimal sellingPrice = getSellingPrice(inventoryItem.id, method);
