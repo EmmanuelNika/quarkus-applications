@@ -35,7 +35,7 @@ public class MarginPriceController {
     @Path("highest-in-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get Highest In, First Out (HIFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getHIFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getHIFOCost(@PathParam("id") Long id) {
         return service.getFromHIFOCost(id);
     }
 
@@ -43,7 +43,7 @@ public class MarginPriceController {
     @Path("first-in-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get First In, First Out (FIFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getFIFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getFIFOCost(@PathParam("id") Long id) {
         return service.getFromFIFOCost(id);
     }
 
@@ -51,7 +51,7 @@ public class MarginPriceController {
     @Path("last-in-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get Last In, First Out (LIFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getLIFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getLIFOCost(@PathParam("id") Long id) {
         return service.getFromLIFOCost(id);
     }
 
@@ -59,7 +59,7 @@ public class MarginPriceController {
     @Path("first-expiry-first-out/items/{id: \\d+}")
     @APIResponse(responseCode = "200", description = "Get First Expiry, First Out (FEFO) cost for an inventory item", content = @Content(mediaType =
             MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.OBJECT, implementation = BigDecimal.class)))
-    public Response getFEFOCost(@PathParam("id") Long id) {
+    public Uni<Response> getFEFOCost(@PathParam("id") Long id) {
         return service.getFromFEFOCost(id);
     }
 
