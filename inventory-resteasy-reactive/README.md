@@ -1,4 +1,4 @@
-# Hibernate with Panache and RESTEasy Reactive
+# Inventory Valuation Application (Hibernate with Panache and RESTEasy Reactive)
 
 This is a minimal CRUD service exposing a couple of endpoints over REST so you can play with it from an application
 of your own preference.
@@ -10,114 +10,56 @@ While the code is surprisingly simple, under the hood this is using:
 - A MySQL database; see below to run one via Docker
 - ArC, the CDI inspired dependency injection tool with zero overhead
 
+## Understanding Stock and Inventory Valuation
+
+Inventory valuation refers to the process of determining the value of inventory items held by a business before they are
+sold. The value of inventory is an important factor in determining a company's financial position and profitability.
+There are several different methods used to determine the value of inventory, each with its own advantages and
+disadvantages.
+
+* **Weighted Average Cost (WAC):** Calculates the average cost of all inventory items based on their purchase price and
+  quantity. This method is often used in industries where inventory costs are relatively stable over time. The advantage
+  of using the WAC method is that it is simple to calculate and provides a more accurate representation of the overall
+  cost of inventory.
+* **First-In, First-Out (FIFO):** It assumes that the first items purchased are the first items sold. This method is
+  often used in industries where products have a short shelf life, such as the food industry. The advantage of using the
+  FIFO method is that it ensures that older inventory is sold first, which can help prevent spoilage or obsolescence.
+* **Last-In, First-Out (LIFO):** It assumes that the most recent items purchased are the first items sold. This method
+  is often used in industries where inventory costs are rising, such as the petroleum industry. The advantage of using
+  the LIFO method is that it can help reduce taxable income by matching higher-priced inventory with higher revenues,
+  which can lead to lower taxes.
+* **First Expiry, First-Out (FEFO):** It assumes that the items with the earliest expiration dates are the first to be
+  sold or used. The advantage of using FEFO is that it can help to reduce waste and spoilage by ensuring that products
+  that are close to their expiration dates are sold or used first.
+* **Highest Cost, First-Out (HCFO):** The inventory items with the highest cost are assumed to be sold or used first.
+  This method is often used in industries where the cost of inventory items can vary significantly, such as the
+  automotive industry. The advantage of using the HCFO method is that it can help to maximize profits by matching
+  higher-priced inventory with higher revenues.
+
+## Understanding Selling Price Valuation
+
+Determining the selling price of a stock is a critical aspect of any business that sells physical goods. The selling
+price must be high enough to cover the cost of goods sold (COGS) while also generating a profit for the business.
+However, it must also be competitive enough to attract customers and remain profitable in a competitive market.
+
+In determining the selling price of a stock, calculate the COGS. Once the COGS is determined, the business can then add
+a markup to cover additional expenses and generate a profit.
+
+The markup can be a fixed percentage, such as 20%, or it can be calculated using a formula based on the desired profit
+margin. The profit margin is the percentage of the selling price that represents the profit for the business after all
+expenses are covered.
+
+Or else, business can consider market trends and consumer demand, and arrive at a competitive and profitable selling
+price for its products.
+
 ## Requirements
 
-To compile and run this demo you will need:
+The project requirements can be found on the projects [README](../README.md) or you can refer to
+the [Quarkus Official Website](https://quarkus.io).
 
-- JDK 11+
-- GraalVM
+### For more information visit:
 
-In addition, you will need either a MySQL database, or Docker to run one.
+* [Deskera](https://www.deskera.com/blog/inventory/)
 
-### Configuring GraalVM and JDK 11+
-
-Make sure that both the `GRAALVM_HOME` and `JAVA_HOME` environment variables have
-been set, and that a JDK 11+ `java` command is on the path.
-
-See the [Building a Native Executable guide](https://quarkus.io/guides/building-native-image)
-for help setting up your environment.
-
-## Building the demo
-
-Launch the Maven build on the checked out sources of this demo:
-
-> ./mvnw package
-
-## Running the demo
-
-### Prepare a MySQL instance
-
-Make sure you have a MySQL instance running. To set up a MySQL database with Docker:
-
-> docker run -it --rm=true --name quarkus_test -e MYSQL_USER=inventory_test -e MYSQL_ROOT_PASSWORD=inventory_test
-> -e
-> MYSQL_DATABASE=inventory_test -p 5432:5432 postgres:13.3
-
-Connection properties for the Agroal datasource are defined in the standard Quarkus configuration file,
-`src/main/resources/application.properties`.
-
-### Live coding with Quarkus
-
-The Maven Quarkus plugin provides a development mode that supports
-live coding. To try this out:
-
-> ./mvnw quarkus:dev
-
-In this mode you can make changes to the code and have the changes immediately applied, by just refreshing your
-browser.
-
-    Hot reload works even when modifying your JPA entities.
-    Try it! Even the database schema will be updated on the fly.
-
-### Run Quarkus in JVM mode
-
-When you're done iterating in developer mode, you can run the application as a
-conventional jar file.
-
-First compile it:
-
-> ./mvnw package
-
-Then run it:
-
-> java -jar ./target/quarkus-app/quarkus-run.jar
-
-    Have a look at how fast it boots.
-    Or measure total native memory consumption...
-
-### Run Quarkus as a native application
-
-You can also create a native executable from this application without making any
-source code changes. A native executable removes the dependency on the JVM:
-everything needed to run the application on the target platform is included in
-the executable, allowing the application to run with minimal resource overhead.
-
-Compiling a native executable takes a bit longer, as GraalVM performs additional
-steps to remove unnecessary codepaths. Use the  `native` profile to compile a
-native executable:
-
-> ./mvnw package -Dnative
-
-After getting a cup of coffee, you'll be able to run this binary directly:
-
-> ./target/hibernate-reactive-panache-quickstart-1.0.0-SNAPSHOT-runner
-
-    Please brace yourself: don't choke on that fresh cup of coffee you just got.
-    
-    Now observe the time it took to boot, and remember: that time was mostly spent to generate the tables in your database and import the initial data.
-    
-    Next, maybe you're ready to measure how much memory this service is consuming.
-
-N.B. This implies all dependencies have been compiled to native;
-that's a whole lot of stuff: from the bytecode enhancements that Panache
-applies to your entities, to the lower level essential components such as the PostgreSQL JDBC driver, the Undertow
-webserver.
-
-## See the demo in your browser
-
-Navigate to:
-
-<http://localhost:8081/inventory-api/index.html>
-
-Have fun, and join the team of contributors!
-
-## Running the demo in Kubernetes
-
-This section provides extra information for running both the database and the demo on Kubernetes.
-As well as running the DB on Kubernetes, a service needs to be exposed for the demo to connect to the DB.
-
-Then, rebuild demo docker image with a system property that points to the DB.
-
-```bash
--Dquarkus.datasource.reactive.url=mysql://<DB_SERVICE_NAME>/quarkus_test
-```
+-----
+All documentation, source code and other files in this repository are Copyright 2023 Emmanuel Nika.
