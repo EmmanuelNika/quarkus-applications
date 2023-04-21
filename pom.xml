@@ -10,8 +10,10 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>inventory</module>
-        <module>authorization</module>
+        <module>inventory-reactive</module>
+        <module>keycloak-authorization</module>
+        <module>okta-authorization</module>
+        <module>inventory-resteasy-reactive</module>
     </modules>
 
     <properties>
