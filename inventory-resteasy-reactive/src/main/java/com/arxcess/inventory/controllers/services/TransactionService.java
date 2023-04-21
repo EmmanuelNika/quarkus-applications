@@ -287,6 +287,30 @@ public class TransactionService {
     private List<InventoryActivity> saleItemWithSerialNumber(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate) {
         List<InventoryActivity> activities = new ArrayList<>();
 
+        saleItemRequest.serialNumbers.forEach(serialNumber -> {
+            InventoryActivity activityLine = activityRepository.getSerialNoForSaleActivity(inventoryItem.id, serialNumber);
+
+            BigDecimal unitPrice = activityLine.unitPrice;
+            BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));;
+
+            InventoryActivity inventoryActivity = new InventoryActivity();
+            inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+            inventoryActivity.date = saleDate.atTime(LocalTime.now());
+            inventoryActivity.unitPrice = unitPrice.negate();
+            inventoryActivity.sellingPrice = sellingPrice;
+            inventoryActivity.costPrice = unitPrice.multiply(BigDecimal.valueOf(1)).negate();
+            inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
+            inventoryActivity.inventoryItem = inventoryItem;
+            inventoryActivity.activityLine = activityLine;
+
+            inventoryActivity.persist();
+
+            activityLine.quantityRemaining = activityLine.quantityRemaining.subtract(BigDecimal.valueOf(1));
+            activityLine.persist();
+
+            activities.add(inventoryActivity);
+        });
+
         return activities;
     }
 
@@ -344,6 +368,26 @@ public class TransactionService {
 
         if (method.equalsIgnoreCase(PaymentTypes.FIFO) || method.equalsIgnoreCase(PaymentTypes.AVG) || method.equalsIgnoreCase(PaymentTypes.FEFO)) {
             return activityRepository.getFirstInForSaleActivity(itemId);
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
+            return activityRepository.getHighestInForSaleActivity(itemId);
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.LIFO)) {
+            return activityRepository.getLastInForSaleActivity(itemId);
+
+        } else {
+            throw new NotFoundException("Method type not found!");
+        }
+
+    }
+
+    private InventoryActivity getBatchActivityLine(Long itemId, String method, Long batchId) {
+
+        if (method.equalsIgnoreCase(PaymentTypes.FIFO) || method.equalsIgnoreCase(PaymentTypes.AVG)) {
+            return activityRepository.getFirstInForSaleActivity(itemId);
+
+        } else if (method.equalsIgnoreCase(PaymentTypes.FEFO)) {
+            return activityRepository.getHighestInForSaleActivity(itemId);
 
         } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
             return activityRepository.getHighestInForSaleActivity(itemId);
