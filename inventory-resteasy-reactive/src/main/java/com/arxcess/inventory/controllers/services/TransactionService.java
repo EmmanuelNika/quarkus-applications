@@ -137,7 +137,7 @@ public class TransactionService {
 
             } else if (saleItemRequest.batchNumber != null && Boolean.TRUE.equals(batchInfoRepository.hasBatchNumber(inventoryItem))) {
                 // FIFO, HIFO, LIFO, FEFO
-                activities.add(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date, request.method));
+                activities.addAll(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date, request.method));
 
             } else {
                 // AVG, FIFO, HIFO, LIFO
@@ -219,6 +219,7 @@ public class TransactionService {
             inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
             inventoryActivity.inventoryItem = inventoryItem;
             inventoryActivity.activityLine = activityLine;
+            inventoryActivity.inventoryItemSerialNumber = activityLine.inventoryItemSerialNumber;
 
             inventoryActivity.persist();
 
@@ -231,31 +232,51 @@ public class TransactionService {
         return activities;
     }
 
-    private InventoryActivity saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, String method) {
+    private List<InventoryActivity> saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, String method) {
 
-        InventoryActivity activityLine = getBatchActivityLine(inventoryItem.id, method, saleItemRequest.batchNumber);
+        List<InventoryActivity> activities = new ArrayList<>();
 
-        BigDecimal unitPrice = activityLine.unitPrice;
-        BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
+        BigDecimal qty = inventoryCommonService.getQuantityOfBatchItem(inventoryItem.id, saleItemRequest.batchNumber)
+                .onItem()
+                .transform(BigDecimal::abs).await().indefinitely();
 
-        if (saleItemRequest.quantity.compareTo(activityLine.quantity) >= 0) {
+        if (qty.compareTo(BigDecimal.ZERO) > 0) {
 
-            InventoryActivity inventoryActivity = new InventoryActivity();
-            inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-            inventoryActivity.date = saleDate.atTime(LocalTime.now());
-            inventoryActivity.unitPrice = unitPrice.negate();
-            inventoryActivity.sellingPrice = sellingPrice;
-            inventoryActivity.costPrice = unitPrice.multiply(saleItemRequest.quantity).negate();
-            inventoryActivity.quantity = saleItemRequest.quantity.negate();
-            inventoryActivity.inventoryItem = inventoryItem;
-            inventoryActivity.activityLine = activityLine;
+            BigDecimal qtyToBeSold = saleItemRequest.quantity;
 
-            inventoryActivity.persist();
+            while (qtyToBeSold.compareTo(BigDecimal.ZERO) > 0) {
+                InventoryActivity activityLine = getBatchActivityLine(inventoryItem.id, method, saleItemRequest.batchNumber);
 
-            activityLine.quantityRemaining = activityLine.quantityRemaining.subtract(saleItemRequest.quantity);
-            activityLine.persist();
+                BigDecimal availableQty = activityLine.quantityRemaining;
+                BigDecimal soldQty = availableQty.subtract(qtyToBeSold)
+                        .compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
 
-            return inventoryActivity;
+                BigDecimal unitPrice = activityLine.unitPrice;
+                BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+                InventoryActivity inventoryActivity = new InventoryActivity();
+                inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+                inventoryActivity.date = saleDate.atTime(LocalTime.now());
+                inventoryActivity.unitPrice = unitPrice.negate();
+                inventoryActivity.sellingPrice = sellingPrice;
+                inventoryActivity.costPrice = unitPrice.multiply(soldQty).negate();
+                inventoryActivity.quantity = soldQty.negate();
+                inventoryActivity.inventoryItem = inventoryItem;
+                inventoryActivity.activityLine = activityLine;
+                inventoryActivity.batchInfo = activityLine.batchInfo;
+
+                inventoryActivity.persist();
+
+                activityLine.quantityRemaining = activityLine.quantityRemaining.subtract(soldQty);
+                activityLine.persist();
+
+                qtyToBeSold = qtyToBeSold.subtract(soldQty);
+
+                activities.add(inventoryActivity);
+
+            }
+
+            return activities;
 
         } else {
 

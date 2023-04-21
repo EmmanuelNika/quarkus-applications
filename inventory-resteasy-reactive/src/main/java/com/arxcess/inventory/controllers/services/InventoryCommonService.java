@@ -64,14 +64,15 @@ public class InventoryCommonService {
 
     }
 
-    public Uni<BigDecimal> getQuantityOfBatchItem(Long id, Long batchId) {
+    public Uni<BigDecimal> getQuantityOfBatchItem(Long id, String batchNumber) {
 
         String query = """
                        SELECT
-                       SUM(quantity) AS quantity
-                       FROM InventoryActivity
-                       WHERE inventoryItem_id = %d
-                       AND batchInfo_id = %d""".formatted(id, batchId);
+                       SUM(a.quantity) AS quantity
+                       FROM InventoryActivity a
+                       INNER JOIN BatchInfo b ON a.batchInfo_id = b.id
+                       WHERE a.inventoryItem_id = %d
+                       AND b.batchNumber = '%s'""".formatted(id, batchNumber);
 
         return client.preparedQuery(query).execute()
                 .onItem().ifNotNull().transform(RowSet::iterator)
