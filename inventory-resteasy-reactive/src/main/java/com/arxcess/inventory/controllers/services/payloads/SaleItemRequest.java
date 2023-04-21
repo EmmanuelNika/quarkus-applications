@@ -16,6 +16,7 @@ public class SaleItemRequest {
 
     public List<String> serialNumbers = new ArrayList<>();
 
-    public BatchInfoRequest batchInfo;
+    @Schema(required = true, example = "BS230")
+    public String batchNumber;
 
 }

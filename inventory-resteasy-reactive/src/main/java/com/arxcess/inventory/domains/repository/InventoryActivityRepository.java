@@ -15,18 +15,35 @@ public class InventoryActivityRepository implements PanacheRepository<InventoryA
     }
 
     public InventoryActivity getFirstInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date ASC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0 ORDER BY date ASC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getLastInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0 ORDER BY date DESC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0 ORDER BY date DESC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getHighestInForSaleActivity(Long itemId) {
-        return find("inventoryItem_id = ?1 AND MAX(unitPrice) AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND MAX(unitPrice) AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
 
     public InventoryActivity getSerialNoForSaleActivity(Long itemId, String serialNumber) {
-        return find("inventoryItem_id = ?1 AND inventoryItemSerialNumber.serialNumber = ?2 AND batchInfo_id IS NULL AND inventoryItemSerialNumber_id IS NULL AND quantityRemaining > 0", itemId, serialNumber).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+        return find("inventoryItem_id = ?1 AND inventoryItemSerialNumber.serialNumber = ?2 AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId, serialNumber).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
     }
+
+    public InventoryActivity getFirstInBatchForSaleActivity(Long itemId, String batchNumber) {
+        return find("inventoryItem_id = ?1 AND batchInfo.batchNumber IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0 ORDER BY date ASC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+    }
+
+    public InventoryActivity getLastInBatchForSaleActivity(Long itemId, String batchNumber) {
+        return find("inventoryItem_id = ?1 AND batchInfo.batchNumber IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0 ORDER BY date DESC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+    }
+
+    public InventoryActivity getHighestInBatchForSaleActivity(Long itemId, String batchNumber) {
+        return find("inventoryItem_id = ?1 AND MAX(unitPrice) AND batchInfo.batchNumber IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+    }
+
+    public InventoryActivity getFirstExpiryBatchForSaleActivity(Long itemId, String batchNumber) {
+        return find("inventoryItem_id = ?1 AND batchInfo.batchNumber IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0 ORDER BY batchInfo.expiryDate DESC", itemId).firstResultOptional().orElseThrow(() -> new WebApplicationException("No items available for sale"));
+    }
+
 }

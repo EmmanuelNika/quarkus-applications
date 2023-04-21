@@ -30,6 +30,10 @@ import java.util.List;
 @ApplicationScoped
 public class TransactionService {
 
+    private static final String METHOD_NOT_FOUND = "Method type not found!";
+
+    private static final String NO_ITEMS_FOUND = "No items available for sale";
+
     @Inject
     InventoryItemRepository itemRepository;
 
@@ -120,97 +124,6 @@ public class TransactionService {
 
     }
 
-    public Response createSale(SaleRequest request) {
-
-        List<InventoryActivity> activities = new ArrayList<>();
-
-        for (SaleItemRequest saleItemRequest : request.itemRequests) {
-            InventoryItem inventoryItem = itemRepository.getById(saleItemRequest.itemId);
-
-            BigDecimal qty = inventoryCommonService.getQuantityOfItem(inventoryItem.id).onItem().transform(BigDecimal::abs).await().indefinitely();
-            BigDecimal sellingPrice = inventoryCommonService.calculateSellingPriceFromAverageCost(inventoryItem.id).await().indefinitely();
-
-            if (qty.compareTo(BigDecimal.ZERO) > 0) {
-
-                if (Boolean.TRUE.equals(saleItemRequest.serialNumbers.isEmpty()) && saleItemRequest.batchInfo == null) {
-                    BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
-
-                    InventoryActivity inventoryActivity = new InventoryActivity();
-                    inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-                    inventoryActivity.date = request.date.atTime(LocalTime.now());
-                    inventoryActivity.unitPrice = unitPrice.negate();
-                    inventoryActivity.sellingPrice = sellingPrice;
-                    inventoryActivity.costPrice = unitPrice.multiply(saleItemRequest.quantity).negate();
-                    inventoryActivity.quantity = saleItemRequest.quantity.negate();
-                    inventoryActivity.inventoryItem = inventoryItem;
-
-                    inventoryActivity.persist();
-
-                    activities.add(inventoryActivity);
-
-                } else if (Boolean.FALSE.equals(saleItemRequest.serialNumbers.isEmpty()) && saleItemRequest.batchInfo == null) {
-
-                    saleItemRequest.serialNumbers.forEach(serialNumber -> {
-                        BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
-
-                        InventoryActivity inventoryActivity = new InventoryActivity();
-                        inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-                        inventoryActivity.date = request.date.atTime(LocalTime.now());
-                        inventoryActivity.unitPrice = unitPrice.negate();
-                        inventoryActivity.sellingPrice = sellingPrice;
-                        inventoryActivity.costPrice = unitPrice.negate();
-                        inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
-                        inventoryActivity.inventoryItem = inventoryItem;
-
-                        InventoryItemSerialNumber itemSerialNumber = new InventoryItemSerialNumber();
-                        itemSerialNumber.serialNumber = serialNumber;
-                        itemSerialNumber.inventoryItem = inventoryItem;
-                        itemSerialNumber.persist();
-
-                        inventoryActivity.persist();
-
-                        activities.add(inventoryActivity);
-
-                    });
-
-                } else {
-
-                    BigDecimal unitPrice = inventoryCommonService.calculateAverageCost(inventoryItem.id, request.date).onItem().transform(BigDecimal::abs).await().indefinitely();
-
-                    InventoryActivity inventoryActivity = new InventoryActivity();
-                    inventoryActivity.transaction = ActivityTransactionTypes.SALE;
-                    inventoryActivity.date = request.date.atTime(LocalTime.now());
-                    inventoryActivity.unitPrice = unitPrice.negate();
-                    inventoryActivity.sellingPrice = sellingPrice;
-                    inventoryActivity.costPrice = unitPrice.negate();
-                    inventoryActivity.quantity = saleItemRequest.quantity.negate();
-                    inventoryActivity.inventoryItem = inventoryItem;
-
-                    BatchInfo batchInfo = new BatchInfo();
-                    batchInfo.batchReference = batchInfoRepository.generateBatchReference(request.date);
-                    batchInfo.batchNumber = saleItemRequest.batchInfo.batchNumber;
-                    batchInfo.manufacturingDate = saleItemRequest.batchInfo.manufacturingDate;
-                    batchInfo.expiryDate = saleItemRequest.batchInfo.expiryDate;
-                    batchInfo.inventoryItem = inventoryItem;
-                    batchInfo.persist();
-
-                    inventoryActivity.persist();
-
-                    activities.add(inventoryActivity);
-                }
-
-            } else {
-
-                throw new WebApplicationException("No items available for sale");
-
-            }
-
-        }
-
-        return Response.created(UriBuilder.fromResource(TransactionController.class).path("").build()).entity(activities).build();
-
-    }
-
     public Response makeSale(SaleRequest request) {
         List<InventoryActivity> activities = new ArrayList<>();
 
@@ -221,9 +134,9 @@ public class TransactionService {
                 // FIFO, HIFO, LIFO
                 activities.addAll(saleItemWithSerialNumber(inventoryItem, saleItemRequest, request.date));
 
-            } else if (saleItemRequest.batchInfo != null && Boolean.TRUE.equals(batchInfoRepository.hasBatchNumber(inventoryItem))) {
+            } else if (saleItemRequest.batchNumber != null && Boolean.TRUE.equals(batchInfoRepository.hasBatchNumber(inventoryItem))) {
                 // FIFO, HIFO, LIFO, FEFO
-                activities.add(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date));
+                activities.add(saleItemWithBatchInfo(inventoryItem, saleItemRequest, request.date, request.method));
 
             } else {
                 // AVG, FIFO, HIFO, LIFO
@@ -279,7 +192,7 @@ public class TransactionService {
 
         } else {
 
-            throw new WebApplicationException("No items available for sale");
+            throw new WebApplicationException(NO_ITEMS_FOUND);
 
         }
     }
@@ -291,7 +204,7 @@ public class TransactionService {
             InventoryActivity activityLine = activityRepository.getSerialNoForSaleActivity(inventoryItem.id, serialNumber);
 
             BigDecimal unitPrice = activityLine.unitPrice;
-            BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));;
+            BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
 
             InventoryActivity inventoryActivity = new InventoryActivity();
             inventoryActivity.transaction = ActivityTransactionTypes.SALE;
@@ -314,10 +227,37 @@ public class TransactionService {
         return activities;
     }
 
-    private InventoryActivity saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate) {
-        InventoryActivity inventoryActivity = new InventoryActivity();
+    private InventoryActivity saleItemWithBatchInfo(InventoryItem inventoryItem, SaleItemRequest saleItemRequest, LocalDate saleDate, String method) {
 
-        return inventoryActivity;
+        InventoryActivity activityLine = getBatchActivityLine(inventoryItem.id, method, saleItemRequest.batchNumber);
+
+        BigDecimal unitPrice = activityLine.unitPrice;
+        BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
+
+        if (saleItemRequest.quantity.compareTo(activityLine.quantity) >= 0) {
+
+            InventoryActivity inventoryActivity = new InventoryActivity();
+            inventoryActivity.transaction = ActivityTransactionTypes.SALE;
+            inventoryActivity.date = saleDate.atTime(LocalTime.now());
+            inventoryActivity.unitPrice = unitPrice.negate();
+            inventoryActivity.sellingPrice = sellingPrice;
+            inventoryActivity.costPrice = unitPrice.multiply(saleItemRequest.quantity).negate();
+            inventoryActivity.quantity = saleItemRequest.quantity.negate();
+            inventoryActivity.inventoryItem = inventoryItem;
+            inventoryActivity.activityLine = activityLine;
+
+            inventoryActivity.persist();
+
+            activityLine.quantityRemaining = activityLine.quantityRemaining.subtract(saleItemRequest.quantity);
+            activityLine.persist();
+
+            return inventoryActivity;
+
+        } else {
+
+            throw new WebApplicationException(NO_ITEMS_FOUND);
+
+        }
     }
 
     private BigDecimal getCostPrice(Long itemId, String method) {
@@ -338,7 +278,7 @@ public class TransactionService {
             return inventoryCommonService.calculateLIFOCost(itemId).await().indefinitely();
 
         } else {
-            throw new NotFoundException("Method type not found!");
+            throw new NotFoundException(METHOD_NOT_FOUND);
         }
     }
 
@@ -360,7 +300,7 @@ public class TransactionService {
             return inventoryCommonService.calculateSellingPriceFromLIFOCost(itemId).await().indefinitely();
 
         } else {
-            throw new NotFoundException("Method type not found!");
+            throw new NotFoundException(METHOD_NOT_FOUND);
         }
     }
 
@@ -376,27 +316,27 @@ public class TransactionService {
             return activityRepository.getLastInForSaleActivity(itemId);
 
         } else {
-            throw new NotFoundException("Method type not found!");
+            throw new NotFoundException(METHOD_NOT_FOUND);
         }
 
     }
 
-    private InventoryActivity getBatchActivityLine(Long itemId, String method, Long batchId) {
+    private InventoryActivity getBatchActivityLine(Long itemId, String method, String batchNumber) {
 
         if (method.equalsIgnoreCase(PaymentTypes.FIFO) || method.equalsIgnoreCase(PaymentTypes.AVG)) {
-            return activityRepository.getFirstInForSaleActivity(itemId);
+            return activityRepository.getFirstInBatchForSaleActivity(itemId, batchNumber);
 
         } else if (method.equalsIgnoreCase(PaymentTypes.FEFO)) {
-            return activityRepository.getHighestInForSaleActivity(itemId);
+            return activityRepository.getFirstExpiryBatchForSaleActivity(itemId, batchNumber);
 
         } else if (method.equalsIgnoreCase(PaymentTypes.HIFO)) {
-            return activityRepository.getHighestInForSaleActivity(itemId);
+            return activityRepository.getHighestInBatchForSaleActivity(itemId, batchNumber);
 
         } else if (method.equalsIgnoreCase(PaymentTypes.LIFO)) {
-            return activityRepository.getLastInForSaleActivity(itemId);
+            return activityRepository.getLastInBatchForSaleActivity(itemId, batchNumber);
 
         } else {
-            throw new NotFoundException("Method type not found!");
+            throw new NotFoundException(METHOD_NOT_FOUND);
         }
 
     }
