@@ -100,7 +100,7 @@ public class TransactionService {
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
                 inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                inventoryActivity.costPrice = receiveItemRequest.costPrice;
+                inventoryActivity.costPrice = receiveItemRequest.costPrice.multiply(receiveItemRequest.quantity);
                 inventoryActivity.quantity = receiveItemRequest.quantity;
                 inventoryActivity.quantityRemaining = receiveItemRequest.quantity;
                 inventoryActivity.inventoryItem = inventoryItem;

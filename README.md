@@ -14,7 +14,7 @@ Okta). Part of [emmanuelnika.com](https://emmanuelnika.com/#projects).
 
 | Module | What it is |
 | --- | --- |
-| [`inventory-resteasy-reactive`](./inventory-resteasy-reactive) | **The full service.** RESTEasy Reactive + Hibernate Reactive Panache on MySQL: items, receiving, sales, cost and selling-price calculators, OpenAPI/Swagger UI. |
+| [`inventory-resteasy-reactive`](./inventory-resteasy-reactive) | **The full service.** RESTEasy Reactive + Hibernate ORM Panache on MySQL, with the cost queries on the reactive MySQL client: items, receiving, sales, cost and selling-price calculators, OpenAPI/Swagger UI. |
 | [`inventory-reactive`](./inventory-reactive) | The same domain on **Reactive Routes** (Vert.x `@Route`): items and stock receipts, with integration tests. Useful side by side with the module above. |
 | [`keycloak-authorization`](./keycloak-authorization) | Starting point for **multi-tenant Keycloak** in a SaaS app: a `Business` tenant entity and Keycloak Dev Services with a bundled realm (`config/quarkus-realm.json`). |
 | [`okta-authorization`](./okta-authorization) | Starting point for **Okta** sign-in: Quarkus OIDC configured as a web app against an Okta developer org. |
@@ -54,7 +54,8 @@ Swagger UI (below).
 ## Stack
 
 - Quarkus 2.16 (RESTEasy Reactive, Reactive Routes, Quarkus OIDC)
-- Hibernate Reactive with Panache, on the reactive MySQL client — non-blocking end to end with Mutiny `Uni`
+- Hibernate ORM with Panache for the full service's writes; cost queries on the reactive MySQL client with Mutiny `Uni`
+- Hibernate Reactive with Panache in the Reactive Routes module — non-blocking end to end
 - Hibernate Validator for request payloads
 - SmallRye OpenAPI + Swagger UI
 - Keycloak Dev Services, Okta OIDC
