@@ -29,7 +29,7 @@ name, barcode, type, a returnable flag and the markup used for pricing.
 
 **Transactions** — every receipt and sale is an `InventoryActivity`:
 
-- `POST /transactions/receive` records stock in at its cost price. Stock can
+- `POST /transactions/receive` records stock in at its unit cost. Stock can
   be untracked, tracked by batch (with an expiry date) or by serial numbers.
 - `POST /transactions/sale` takes stock out: untracked stock at average cost,
   batch stock from the named batch, serial stock by serial number.

@@ -57,8 +57,8 @@ public class InventoryReceiveService {
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                inventoryActivity.costPrice = receiveItemRequest.costPrice.multiply(receiveItemRequest.quantity);
+                inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                inventoryActivity.lineCost = receiveItemRequest.unitCost.multiply(receiveItemRequest.quantity);
                 inventoryActivity.quantity = receiveItemRequest.quantity;
                 inventoryActivity.inventoryItem = inventoryItem;
 
@@ -70,8 +70,8 @@ public class InventoryReceiveService {
                     InventoryActivity inventoryActivity = new InventoryActivity();
                     inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                     inventoryActivity.date = request.date.atTime(LocalTime.now());
-                    inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                    inventoryActivity.costPrice = receiveItemRequest.costPrice;
+                    inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                    inventoryActivity.lineCost = receiveItemRequest.unitCost;
                     inventoryActivity.quantity = BigDecimal.valueOf(1);
                     inventoryActivity.inventoryItem = inventoryItem;
 
@@ -84,8 +84,8 @@ public class InventoryReceiveService {
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                inventoryActivity.costPrice = receiveItemRequest.costPrice.multiply(receiveItemRequest.quantity);
+                inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                inventoryActivity.lineCost = receiveItemRequest.unitCost.multiply(receiveItemRequest.quantity);
                 inventoryActivity.quantity = receiveItemRequest.quantity;
                 inventoryActivity.inventoryItem = inventoryItem;
 
