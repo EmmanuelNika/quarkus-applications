@@ -60,8 +60,8 @@ public class TransactionService {
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                inventoryActivity.costPrice = receiveItemRequest.costPrice.multiply(receiveItemRequest.quantity);
+                inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                inventoryActivity.lineCost = receiveItemRequest.unitCost.multiply(receiveItemRequest.quantity);
                 inventoryActivity.quantity = receiveItemRequest.quantity;
                 inventoryActivity.quantityRemaining = receiveItemRequest.quantity;
                 inventoryActivity.inventoryItem = inventoryItem;
@@ -76,8 +76,8 @@ public class TransactionService {
                     InventoryActivity inventoryActivity = new InventoryActivity();
                     inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                     inventoryActivity.date = request.date.atTime(LocalTime.now());
-                    inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                    inventoryActivity.costPrice = receiveItemRequest.costPrice;
+                    inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                    inventoryActivity.lineCost = receiveItemRequest.unitCost;
                     inventoryActivity.quantity = BigDecimal.valueOf(1);
                     inventoryActivity.quantityRemaining = BigDecimal.valueOf(1);
                     inventoryActivity.inventoryItem = inventoryItem;
@@ -99,8 +99,8 @@ public class TransactionService {
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.RECEIVE;
                 inventoryActivity.date = request.date.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = receiveItemRequest.costPrice;
-                inventoryActivity.costPrice = receiveItemRequest.costPrice.multiply(receiveItemRequest.quantity);
+                inventoryActivity.unitCost = receiveItemRequest.unitCost;
+                inventoryActivity.lineCost = receiveItemRequest.unitCost.multiply(receiveItemRequest.quantity);
                 inventoryActivity.quantity = receiveItemRequest.quantity;
                 inventoryActivity.quantityRemaining = receiveItemRequest.quantity;
                 inventoryActivity.inventoryItem = inventoryItem;
@@ -168,15 +168,15 @@ public class TransactionService {
                 BigDecimal soldQty = availableQty.subtract(qtyToBeSold)
                         .compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
 
-                BigDecimal unitPrice = getCostPrice(inventoryItem.id, method);
+                BigDecimal unitCost = getUnitCost(inventoryItem.id, method);
                 BigDecimal sellingPrice = getSellingPrice(inventoryItem.id, method);
 
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.SALE;
                 inventoryActivity.date = saleDate.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = unitPrice.negate();
+                inventoryActivity.unitCost = unitCost;
                 inventoryActivity.sellingPrice = sellingPrice;
-                inventoryActivity.costPrice = unitPrice.multiply(soldQty).negate();
+                inventoryActivity.lineCost = unitCost.multiply(soldQty).negate();
                 inventoryActivity.quantity = soldQty.negate();
                 inventoryActivity.inventoryItem = inventoryItem;
                 inventoryActivity.activityLine = activityLine;
@@ -207,15 +207,15 @@ public class TransactionService {
         saleItemRequest.serialNumbers.forEach(serialNumber -> {
             InventoryActivity activityLine = activityRepository.getSerialNoForSaleActivity(inventoryItem.id, serialNumber);
 
-            BigDecimal unitPrice = activityLine.unitPrice;
-            BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
+            BigDecimal unitCost = activityLine.unitCost;
+            BigDecimal sellingPrice = unitCost.add((unitCost.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
 
             InventoryActivity inventoryActivity = new InventoryActivity();
             inventoryActivity.transaction = ActivityTransactionTypes.SALE;
             inventoryActivity.date = saleDate.atTime(LocalTime.now());
-            inventoryActivity.unitPrice = unitPrice.negate();
+            inventoryActivity.unitCost = unitCost;
             inventoryActivity.sellingPrice = sellingPrice;
-            inventoryActivity.costPrice = unitPrice.multiply(BigDecimal.valueOf(1)).negate();
+            inventoryActivity.lineCost = unitCost.negate();
             inventoryActivity.quantity = BigDecimal.valueOf(1).negate();
             inventoryActivity.inventoryItem = inventoryItem;
             inventoryActivity.activityLine = activityLine;
@@ -251,15 +251,15 @@ public class TransactionService {
                 BigDecimal soldQty = availableQty.subtract(qtyToBeSold)
                         .compareTo(BigDecimal.ZERO) < 0 ? availableQty : qtyToBeSold;
 
-                BigDecimal unitPrice = activityLine.unitPrice;
-                BigDecimal sellingPrice = unitPrice.add((unitPrice.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
+                BigDecimal unitCost = activityLine.unitCost;
+                BigDecimal sellingPrice = unitCost.add((unitCost.multiply(activityLine.inventoryItem.markUp.multiply(BigDecimal.valueOf(0.01)))));
 
                 InventoryActivity inventoryActivity = new InventoryActivity();
                 inventoryActivity.transaction = ActivityTransactionTypes.SALE;
                 inventoryActivity.date = saleDate.atTime(LocalTime.now());
-                inventoryActivity.unitPrice = unitPrice.negate();
+                inventoryActivity.unitCost = unitCost;
                 inventoryActivity.sellingPrice = sellingPrice;
-                inventoryActivity.costPrice = unitPrice.multiply(soldQty).negate();
+                inventoryActivity.lineCost = unitCost.multiply(soldQty).negate();
                 inventoryActivity.quantity = soldQty.negate();
                 inventoryActivity.inventoryItem = inventoryItem;
                 inventoryActivity.activityLine = activityLine;
@@ -285,7 +285,7 @@ public class TransactionService {
         }
     }
 
-    private BigDecimal getCostPrice(Long itemId, String method) {
+    private BigDecimal getUnitCost(Long itemId, String method) {
 
         if (method.equalsIgnoreCase(PaymentTypes.AVG)) {
             return inventoryCommonService.calculateAverageCost(itemId).await().indefinitely();

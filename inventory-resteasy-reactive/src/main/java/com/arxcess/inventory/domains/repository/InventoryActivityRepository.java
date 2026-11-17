@@ -27,7 +27,7 @@ public class InventoryActivityRepository implements PanacheRepository<InventoryA
     }
 
     public InventoryActivity getHighestInForSaleActivity(Long itemId) {
-        return find("inventoryItem.id = ?1 AND MAX(unitPrice) AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId).firstResultOptional()
+        return find("inventoryItem.id = ?1 AND MAX(unitCost) AND batchInfo IS NULL AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId).firstResultOptional()
                 .orElseThrow(() -> new WebApplicationException(NO_ITEMS_FOUND));
     }
 
@@ -47,7 +47,7 @@ public class InventoryActivityRepository implements PanacheRepository<InventoryA
     }
 
     public InventoryActivity getHighestInBatchForSaleActivity(Long itemId, String batchNumber) {
-        return find("inventoryItem.id = ?1 AND MAX(unitPrice) AND batchInfo.batchNumber = ?2 AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId, batchNumber).firstResultOptional()
+        return find("inventoryItem.id = ?1 AND MAX(unitCost) AND batchInfo.batchNumber = ?2 AND inventoryItemSerialNumber IS NULL AND quantityRemaining > 0", itemId, batchNumber).firstResultOptional()
                 .orElseThrow(() -> new WebApplicationException(NO_ITEMS_FOUND));
     }
 

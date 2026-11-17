@@ -12,7 +12,7 @@ public class ReceiveItemRequest {
     public BigDecimal quantity;
 
     @Schema(required = true, example = "1000")
-    public BigDecimal costPrice;
+    public BigDecimal unitCost;
 
     @Schema(required = true, example = "1")
     public Long itemId;
