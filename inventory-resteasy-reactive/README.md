@@ -6,7 +6,7 @@ of your own preference.
 While the code is surprisingly simple, under the hood this is using:
 
 - RESTEasy Reactive to expose the REST endpoints
-- Hibernate Reactive with Panache to perform the CRUD operations on the database
+- Hibernate ORM with Panache to perform the CRUD operations on the database, and the reactive MySQL client for the cost queries
 - A MySQL database; see below to run one via Docker
 - ArC, the CDI inspired dependency injection tool with zero overhead
 
